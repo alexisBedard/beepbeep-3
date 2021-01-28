@@ -8,10 +8,14 @@ public class SmvFileGeneration {
 	public FileWriter smvFileWriter;
 	public File smvFile;
 	
+	//Used for the domain of our integer variables.
 	protected static int minInput = 1;
 	protected static int maxInput = 1;
 	protected static int minOutput = 1;
 	protected static int maxOutput = 1;
+	
+	//Counts the number of modules needed. Useful if, by example, two Doubler processor is needed therefore no variable will
+	//be named similarly.
 	protected static int numOfModules = 0;
 	
 	public void generateSMV() throws IOException{
@@ -35,9 +39,10 @@ public class SmvFileGeneration {
 		smvFileWriter.write("MODULE main \n");
 		smvFileWriter.write("	VAR \n");
 		
-		//Variable initialization
+		//VAR section
 		for (int i = 1; i <= args.length; i++) {
 			  String s = args[i-1];
+			  s.toLowerCase();
 
 			  switch (s) {
 			  case "doubler" :
@@ -73,12 +78,15 @@ public class SmvFileGeneration {
 					minInput = minOutput;
 					maxInput = maxOutput;
 					smvFileWriter.write("\n");
+					break;
+					
+				default:
+					System.out.println(s + " Is not a module");
 			  }
 		  }
 		
-		//Assign values to variables
+		//ASSIGN section
 		smvFileWriter.write("	ASSIGN \n");
-		//for (int j = 1; j <= args.length; j++) {
 			String s = args[0];
 
 			  switch (s) {

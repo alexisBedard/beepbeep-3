@@ -17,7 +17,11 @@
  */
 package ca.uqac.lif.cep;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Queue;
+
+import ca.uqac.lif.cep.util.Strings;
 
 /**
  * A processor that doubles every number it is given.
@@ -78,5 +82,29 @@ public class Doubler extends SynchronousProcessor
   public Doubler readState(Object o)
   {
     return new Doubler();
+  }
+  
+public void writingSMV(FileWriter file) throws IOException{
+	file.write("MODULE Doubler(inc_1, inb_1, ouc_1, oub_1) \n");
+	file.write("	ASSIGN \n");
+	file.write("		init(ouc_1) := case \n");
+	file.write("		inb_1 : inc_1 * 2; \n");
+	file.write("		TRUE : 0; \n");
+	file.write("	esac; \n");
+	file.write("\n");
+	file.write("	init(oub_1) := inb_1; \n");
+	file.write("\n");
+	file.write("	next(oub_1) := case \n");
+	file.write("		next(inb_1) : next(inb_1); \n");
+	file.write("		TRUE : FALSE; \n");
+	file.write("	esac; \n");
+	file.write("\n");
+	file.write("	next(ouc_1) := case \n");
+	file.write("		next(inb_1) : next(inc_1) * 2; \n");
+	file.write("		TRUE : 0; \n");
+	file.write("	esac; \n");
+	file.write("\n");
+	file.write("\n");
+	
   }
 }

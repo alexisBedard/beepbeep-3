@@ -46,11 +46,24 @@ public class SmvFileGeneration {
 				  maxOutput = maxInput * 2;
 				  
 					  if(numOfModules == 1) {
-						  smvFileWriter.write("		pipe_"+ Integer.toString(i) +": 0" + /*Integer.toString(minInput)*/ ".." + Integer.toString(maxInput) + "; \n");
-						  smvFileWriter.write("		b_pipe_"+ Integer.toString(i) +": boolean; \n");
-						  smvFileWriter.write("		pipe_"+ Integer.toString(i+1) +": 0" + /*Integer.toString(minOutput)*/ ".." + Integer.toString(maxOutput) + "; \n");
-						  smvFileWriter.write("		b_pipe_"+ Integer.toString(i+1) +": boolean; \n");
-						  smvFileWriter.write("		double"+Integer.toString(numOfModules)+" : Doubler(pipe_"+Integer.toString(i)+", b_pipe_"+Integer.toString(i)+", pipe_"+Integer.toString(i+1)+", b_pipe_"+Integer.toString(i+1)+"); \n");  
+							if(minInput > 0) {
+								smvFileWriter.write("		pipe_"+ Integer.toString(i) + ": 0.."+ Integer.toString(maxInput) + "; \n");
+							}
+							else {
+								smvFileWriter.write("		pipe_"+ Integer.toString(i) + ": "+ Integer.toString(minInput) + ".." + Integer.toString(maxInput) + "; \n");
+							}
+								  
+								  
+							smvFileWriter.write("		b_pipe_"+ Integer.toString(i) +": boolean; \n");
+							if(minInput > 0) {
+								smvFileWriter.write("		pipe_"+ Integer.toString(i+1) + ": 0.."+ Integer.toString(maxOutput) + "; \n");
+							}
+							else {
+								smvFileWriter.write("		pipe_"+ Integer.toString(i+1) +  ": "+ Integer.toString(minOutput) + ".." + Integer.toString(maxOutput) + "; \n");
+							}
+							
+							smvFileWriter.write("		b_pipe_"+ Integer.toString(i+1) +": boolean; \n");
+							smvFileWriter.write("		double"+Integer.toString(numOfModules)+" : Doubler(pipe_"+Integer.toString(i)+", b_pipe_"+Integer.toString(i)+", pipe_"+Integer.toString(i+1)+", b_pipe_"+Integer.toString(i+1)+"); \n");  
 					  }
 					  else {
 						  smvFileWriter.write("		pipe_"+ Integer.toString(i+1) +": 0" /*+ Integer.toString(minOutput)*/ + ".." + Integer.toString(maxOutput) + "; \n");

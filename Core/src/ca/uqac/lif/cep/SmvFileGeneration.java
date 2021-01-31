@@ -3,6 +3,7 @@ package ca.uqac.lif.cep;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import ca.uqac.lif.cep.tmf.QueueSource;
 
 public class SmvFileGeneration {
 	public FileWriter smvFileWriter;
@@ -34,6 +35,39 @@ public class SmvFileGeneration {
 			      e.printStackTrace();
 			}		
 	 }
+	
+	public void generateQueueSource(QueueSource ... args) throws IOException {
+		QueueSource mySource = args[0];
+		int a = mySource.getSize();
+		//System.out.println(mySource.getOutputType(0));
+		//Comment savoir si le output est un Integer ou un boolean?
+		//if(mySource.getOutputType(0) == (int)mySource.getOutputType(0));
+		
+		//for(int i = 0; i < mySource.getSize(); i++) {
+			smvFileWriter.write("MODULE QueueSource(ouc_1, oub_1) \n");
+			smvFileWriter.write("	VAR \n");
+			smvFileWriter.write("		source : array 0.." + Integer.toString(mySource.getSize()) +" of " + mySource.getMinValue() + ".." + mySource.getMaxValue()+ "; \n");
+			smvFileWriter.write("		cnt : 0.." + Integer.toString(mySource.getSize()) + "; \n");
+			smvFileWriter.write("\n");
+			smvFileWriter.write("	ASSIGN \n");
+			smvFileWriter.write("		init(cnt) := 0; \n");
+			for(int j = 0; j < mySource.getSize(); j++ ) {
+				smvFileWriter.write("		init(source[" + j + "]) := " + mySource.getIntValue(j)+"; \n");
+			}
+			smvFileWriter.write("		init(ouc_1) := source[cnt]; \n");
+			smvFileWriter.write("		init(oub_1) := TRUE; \n");
+			smvFileWriter.write("\n");
+			smvFileWriter.write("		next(cnt) := (cnt + 1) mod " + Integer.toString(mySource.getSize() + 1) +"; \n");
+			
+			for(int k = 0; k < mySource.getSize(); k++ ) {
+				smvFileWriter.write("		next(source[" + k + "]) := " + mySource.getIntValue(k)+"; \n");
+			}
+			smvFileWriter.write("		next(ouc_1) := source[cnt]; \n");
+			smvFileWriter.write("		next(oub_1) := TRUE; \n");
+			smvFileWriter.write("\n");
+			
+		//}
+	}
 	
 	public void generateMain(String ... args) throws IOException{
 		smvFileWriter.write("MODULE main \n");
@@ -81,7 +115,7 @@ public class SmvFileGeneration {
 					break;
 					
 				default:
-					System.out.println(s + " Is not a module");
+					System.out.println(s + " is not a module");
 			  }
 		  }
 		
@@ -97,7 +131,7 @@ public class SmvFileGeneration {
 				  smvFileWriter.write("		next(b_pipe_1) := TRUE; \n");
 		}
 		
-		//close the file
+		//closing the file
 		smvFileWriter.close();
 	  }
 	

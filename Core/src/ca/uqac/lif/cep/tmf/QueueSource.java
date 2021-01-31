@@ -54,6 +54,9 @@ public class QueueSource extends Source
    * The index of the next event to produce
    */
   protected int m_index;
+  
+  protected int m_minValue = Integer.MAX_VALUE;
+  protected int m_maxValue = Integer.MIN_VALUE;
 
   /**
    * Creates a new queue source of given output arity. The events of the queue
@@ -296,5 +299,34 @@ public class QueueSource extends Source
     qs.m_events = (List<Object>) map.get("events");
     qs.m_loop = (Boolean) map.get("loop");
     return qs;
+  }
+  
+  public int getSize() {
+	  return m_events.size();
+  }
+  
+  //Get the minimum value ONLY IF QUEUESOURCE CONTAINS INTEGERS
+  public int getMinValue() {
+	  for(int i = 0; i < m_events.size(); i++) {
+		  if((Integer)m_events.get(i) < m_minValue) {
+			  m_minValue = (Integer)m_events.get(i);
+		  }
+	  }
+	  return m_minValue;
+  }
+  
+//Get the maximum value ONLY IF QUEUESOURCE CONTAINS INTEGERS
+  public int getMaxValue() {
+	  for(int i = 0; i < m_events.size(); i++) {
+		  if((Integer)m_events.get(i) > m_maxValue) {
+			  m_maxValue = (Integer)m_events.get(i);
+		  }
+	  }
+	  return m_maxValue;
+  }
+  
+  //Get a specific value INTEGER ONLY
+  public int getIntValue(int index) {
+	  return (Integer)m_events.get(index);
   }
 }

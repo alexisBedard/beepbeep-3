@@ -38,7 +38,7 @@ public class SmvFileGeneration {
 	
 	public void generateQueueSource(QueueSource ... args) throws IOException {
 		QueueSource mySource = args[0];
-		int a = mySource.getSize();
+		//int a = mySource.getSize();
 		//System.out.println(mySource.getOutputType(0));
 		//Comment savoir si le output est un Integer ou un boolean?
 		//if(mySource.getOutputType(0) == (int)mySource.getOutputType(0));

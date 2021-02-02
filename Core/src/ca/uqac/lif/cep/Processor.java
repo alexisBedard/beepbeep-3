@@ -307,6 +307,30 @@ public abstract class Processor implements DuplicableProcessor,
   {
     return m_uniqueId;
   }
+  
+  /**
+   * The name of a processor is usually too long. Ex.: "ca.uqac.lif.cep.tmf.Doubler@0"
+   * This fonction will return "Doubler"
+   * For now, this is only useful for SMV file generation
+   * @return the shortened Processor name
+   */
+  
+  public final String getShortName()
+  {
+	  String s = this.toString();
+	  
+	  //Truncate until no "." is present inside the string
+	  int iend = s.indexOf(".");
+	  while(iend != -1) {
+		 s = s.substring(0 + (iend+1) , s.length()); 
+		 iend = s.indexOf(".");
+	  }
+	  
+	  //Truncate the rest to only keep the name.
+	  iend = s.indexOf("@");
+	  s = s.substring(0 , iend ); 
+	  return s;
+  }
 
   /**
    * Resets the processor. This has for effect of flushing the contents of all

@@ -24,8 +24,8 @@ import java.util.Set;
 
 /**
  * An object that visits every processor in a chain, from a processor
- * used as a starting point. Currently, this crawler is only used to clone
- * {@link GroupProcessor}s.
+ * used as a starting point. --Currently, this crawler is only used to clone {@link GroupProcessor}s.-- 
+ * [Since (version number), PipeCrawler is also used in the generation of SMV files]
  * 
  * @author Sylvain Hallé
  * @since 0.3

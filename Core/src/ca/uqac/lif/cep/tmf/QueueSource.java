@@ -20,6 +20,9 @@ package ca.uqac.lif.cep.tmf;
 import ca.uqac.lif.cep.Connector.Variant;
 import ca.uqac.lif.petitpoucet.DirectValue;
 import ca.uqac.lif.petitpoucet.NodeFunction;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -328,5 +331,35 @@ public class QueueSource extends Source
   //Get a specific value INTEGER ONLY
   public int getIntValue(int index) {
 	  return (Integer)m_events.get(index);
+  }
+  
+  public void writingSMV(FileWriter file, int Id) throws IOException{
+	  file.write("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
+		file.write("	VAR \n");
+		file.write("		source : array 0.." + Integer.toString(this.getSize()) +" of ");
+		if(this.getMinValue() > 0){
+			file.write("0.."+Integer.toString(this.getMaxValue())+ "; \n");
+		}
+		else {
+			file.write(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
+		}
+		file.write("		cnt : 0.." + Integer.toString(this.getSize()) + "; \n");
+		file.write("\n");
+		file.write("	ASSIGN \n");
+		file.write("		init(cnt) := 0; \n");
+		for(int j = 0; j < this.getSize(); j++ ) {
+			file.write("		init(source["+ j +"]) := " + this.getIntValue(j)+"; \n");
+		}
+		file.write("		init(ouc_1) := source[cnt]; \n");
+		file.write("		init(oub_1) := TRUE; \n");
+		file.write("\n");
+		file.write("		next(cnt) := (cnt + 1) mod " + Integer.toString(this.getSize() + 1) +"; \n");
+		
+		for(int k = 0; k < this.getSize(); k++ ) {
+			file.write("		next(source["+ k +"]) := " + this.getIntValue(k)+"; \n");
+		}
+		file.write("		next(ouc_1) := source[cnt]; \n");
+		file.write("		next(oub_1) := TRUE; \n");
+		file.write("\n");
   }
 }

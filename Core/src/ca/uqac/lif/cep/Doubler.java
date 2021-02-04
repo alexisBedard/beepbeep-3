@@ -84,8 +84,8 @@ public class Doubler extends SynchronousProcessor
     return new Doubler();
   }
   
-public void writingSMV(FileWriter file) throws IOException{
-	file.write("MODULE Doubler(inc_1, inb_1, ouc_1, oub_1) \n");
+public void writingSMV(FileWriter file, int Id) throws IOException{
+	file.write("MODULE Doubler"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
 	file.write("	ASSIGN \n");
 	file.write("		init(ouc_1) := case \n");
 	file.write("		inb_1 : inc_1 * 2; \n");
@@ -103,7 +103,6 @@ public void writingSMV(FileWriter file) throws IOException{
 	file.write("		next(inb_1) : next(inc_1) * 2; \n");
 	file.write("		TRUE : 0; \n");
 	file.write("	esac; \n");
-	file.write("\n");
 	file.write("\n");
 	
   }

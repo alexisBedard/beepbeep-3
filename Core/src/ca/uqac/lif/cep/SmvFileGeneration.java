@@ -32,6 +32,7 @@ public class SmvFileGeneration {
 		m_ProcessorChain = c.getList();
 		fillModuleList();
 		generateModules(m_ProcessorChain);
+		generateMain();
 		
 	}
 
@@ -98,52 +99,16 @@ public class SmvFileGeneration {
 				switch(processorShortName) {
 				case "QueueSource":
 					QueueSource q = (QueueSource)processorsToGenerate.get(i);
-					smvFileWriter.write("MODULE QueueSource"+processorsToGenerate.get(i).getId()+"(ouc_1, oub_1) \n");
-					smvFileWriter.write("	VAR \n");
-					smvFileWriter.write("		source : array 0.." + Integer.toString(q.getSize()) +" of " + Integer.toString(q.getMinValue()) + ".." + Integer.toString(q.getMaxValue())+ "; \n");
-					smvFileWriter.write("		cnt : 0.." + Integer.toString(q.getSize()) + "; \n");
-					smvFileWriter.write("\n");
-					smvFileWriter.write("	ASSIGN \n");
-					smvFileWriter.write("		init(cnt) := 0; \n");
-					for(int j = 0; j < q.getSize(); j++ ) {
-						smvFileWriter.write("		init(source["+ j +"]) := " + q.getIntValue(j)+"; \n");
-					}
-					smvFileWriter.write("		init(ouc_1) := source[cnt]; \n");
-					smvFileWriter.write("		init(oub_1) := TRUE; \n");
-					smvFileWriter.write("\n");
-					smvFileWriter.write("		next(cnt) := (cnt + 1) mod " + Integer.toString(q.getSize() + 1) +"; \n");
-					
-					for(int k = 0; k < q.getSize(); k++ ) {
-						smvFileWriter.write("		next(source["+ k +"]) := " + q.getIntValue(k)+"; \n");
-					}
-					smvFileWriter.write("		next(ouc_1) := source[cnt]; \n");
-					smvFileWriter.write("		next(oub_1) := TRUE; \n");
-					smvFileWriter.write("\n");
+					q.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
 					break;
+					
 				case "Doubler":
-					smvFileWriter.write("MODULE Doubler"+processorsToGenerate.get(i).getId()+"(inc_1, inb_1, ouc_1, oub_1) \n");
-					smvFileWriter.write("	ASSIGN \n");
-					smvFileWriter.write("		init(ouc_1) := case \n");
-					smvFileWriter.write("		inb_1 : inc_1 * 2; \n");
-					smvFileWriter.write("		TRUE : 0; \n");
-					smvFileWriter.write("	esac; \n");
-					smvFileWriter.write("\n");
-					smvFileWriter.write("	init(oub_1) := inb_1; \n");
-					smvFileWriter.write("\n");
-					smvFileWriter.write("	next(oub_1) := case \n");
-					smvFileWriter.write("		next(inb_1) : next(inb_1); \n");
-					smvFileWriter.write("		TRUE : FALSE; \n");
-					smvFileWriter.write("	esac; \n");
-					smvFileWriter.write("\n");
-					smvFileWriter.write("	next(ouc_1) := case \n");
-					smvFileWriter.write("		next(inb_1) : next(inc_1) * 2; \n");
-					smvFileWriter.write("		TRUE : 0; \n");
-					smvFileWriter.write("	esac; \n");
-					smvFileWriter.write("\n");
+					Doubler d = (Doubler)processorsToGenerate.get(i);
+					d.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
 					break;
 					
 				default:
-					
+					System.out.println(processorsToGenerate.get(i).getShortName()+": This module is not supported at the moment");
 					break;
 				}
 			}
@@ -168,13 +133,9 @@ public class SmvFileGeneration {
 		return false;
 	}
 	
-
-	
-	/*public void setIntMin(int value) {
-		minInput = value;
+	private void generateMain() {
+		// TODO Auto-generated method stub
+		
 	}
-	
-	public void setIntMax(int value) {
-		maxInput = value;
-	}*/
+
 }

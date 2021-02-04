@@ -13,16 +13,20 @@ import com.sun.tools.javac.util.List;
  **/
 public class PipeConnection extends PipeCrawler {
 	
-	protected ArrayList<Tuples<Processor, Processor>> m_processorList = new ArrayList<Tuples<Processor, Processor>>();
-	protected Tuples<Processor, Processor> tuples;
+	protected ArrayList<Tuples<Processor, Integer, Processor, Integer>> m_processorList = new ArrayList<Tuples<Processor, Integer, Processor, Integer>>();
+	protected Tuples<Processor, Integer, Processor, Integer> tuples;
 	
-	protected class Tuples<ProcessorIn, ProcessorOut>{
-		protected  Processor m_PInput;
-		protected  Processor m_POutput;
+	protected class Tuples<ProcessorIn, ArityIn, ProcessorOut, ArityOut>{
+		protected Processor m_PInput;
+		protected Processor m_POutput;
+		protected int m_arityIn;
+		protected int m_arityOut;
 		
-		protected Tuples(Processor input, Processor output) {
+		protected Tuples(Processor input, int arityIn, Processor output, int arityOut) {
 			m_PInput = input;
 			m_POutput = output;
+			m_arityIn = arityIn;
+			m_arityOut = arityOut;
 		}
 	}
 	
@@ -30,7 +34,7 @@ public class PipeConnection extends PipeCrawler {
 		this.crawl(p);
 	}
 	
-	public ArrayList<Tuples<Processor, Processor>> getList(){
+	public ArrayList<Tuples<Processor, Integer, Processor, Integer>> getList(){
 		return m_processorList;
 	}
 	
@@ -40,10 +44,12 @@ public class PipeConnection extends PipeCrawler {
 		
 		for (int i = 0; i < out_arity; i++) {
 			Pushable push = p.getPushableOutput(i);
+	        // int j = push.getPosition();
 			
 			if (push != null){
 				Processor target = push.getProcessor();
-		        tuples = new Tuples<Processor, Processor>(p, target);
+				int j = push.getPosition();
+		        tuples = new Tuples<Processor,Integer, Processor, Integer>(p, i, target, j);
 		        m_processorList.add(tuples);
 			}
 		}

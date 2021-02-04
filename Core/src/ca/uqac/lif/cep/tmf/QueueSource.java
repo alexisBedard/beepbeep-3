@@ -336,14 +336,14 @@ public class QueueSource extends Source
   public void writingSMV(FileWriter file, int Id) throws IOException{
 	  file.write("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
 		file.write("	VAR \n");
-		file.write("		source : array 0.." + Integer.toString(this.getSize()) +" of ");
+		file.write("		source : array 0.." + Integer.toString(this.getSize() -1) +" of ");
 		if(this.getMinValue() > 0){
 			file.write("0.."+Integer.toString(this.getMaxValue())+ "; \n");
 		}
 		else {
 			file.write(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
 		}
-		file.write("		cnt : 0.." + Integer.toString(this.getSize()) + "; \n");
+		file.write("		cnt : 0.." + Integer.toString(this.getSize()-1) + "; \n");
 		file.write("\n");
 		file.write("	ASSIGN \n");
 		file.write("		init(cnt) := 0; \n");
@@ -353,12 +353,12 @@ public class QueueSource extends Source
 		file.write("		init(ouc_1) := source[cnt]; \n");
 		file.write("		init(oub_1) := TRUE; \n");
 		file.write("\n");
-		file.write("		next(cnt) := (cnt + 1) mod " + Integer.toString(this.getSize() + 1) +"; \n");
+		file.write("		next(cnt) := (cnt + 1) mod " + Integer.toString(this.getSize()) +"; \n");
 		
 		for(int k = 0; k < this.getSize(); k++ ) {
 			file.write("		next(source["+ k +"]) := " + this.getIntValue(k)+"; \n");
 		}
-		file.write("		next(ouc_1) := source[cnt]; \n");
+		file.write("		next(ouc_1) := next(source[cnt]); \n");
 		file.write("		next(oub_1) := TRUE; \n");
 		file.write("\n");
   }

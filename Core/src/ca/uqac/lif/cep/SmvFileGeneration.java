@@ -14,7 +14,7 @@ public class SmvFileGeneration {
 	public File smvFile;
 	
 	private static ArrayList<String> m_Modules = new ArrayList<String>();
-	protected static ArrayList<Tuples<Processor, Processor>> m_ProcessorChain;
+	protected static ArrayList<Tuples<Processor, Integer, Processor, Integer>> m_ProcessorChain;
 	
 	//Processor p will be the first processor of the chain.
 	public SmvFileGeneration(Processor p) throws IOException {
@@ -48,7 +48,7 @@ public class SmvFileGeneration {
 			}		
 	 }
 	
-	protected void generateModules(ArrayList<Tuples<Processor, Processor>> list) throws IOException {
+	protected void generateModules(ArrayList<Tuples<Processor, Integer, Processor, Integer>> list) throws IOException {
 		boolean inputToBeGenerate = false;
 		boolean outputToBeGenerated = false;
 		/*
@@ -112,7 +112,6 @@ public class SmvFileGeneration {
 					break;
 				}
 			}
-			smvFileWriter.close();
 	}
 	
 	/**
@@ -133,9 +132,10 @@ public class SmvFileGeneration {
 		return false;
 	}
 	
-	private void generateMain() {
-		// TODO Auto-generated method stub
-		
+	private void generateMain() throws IOException {
+		smvFileWriter.write("MODULE main \n");
+		smvFileWriter.write("	VAR \n");
+		smvFileWriter.close();
 	}
 
 }

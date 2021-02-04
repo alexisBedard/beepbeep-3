@@ -1,43 +1,50 @@
 package ca.uqac.lif.cep;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Using PipeCrawler, SMVPipeConnection will help generate a SMV file with the right pipe connections.
- **/
-public class SMVPipeConnection extends PipeCrawler {
+import com.sun.tools.javac.util.List;
 
-	private Map<Integer, Processor> m_connections = null;
+/**
+ * Using PipeCrawler, PipeConnection generates the piping between the processors. It contains an internal structure
+ * of Tuples<Processor, Processor>, to know the input processor and the output processor. For now, this List is only used 
+ * in the SmvFileGeneration class.
+ **/
+public class PipeConnection extends PipeCrawler {
 	
-	public SMVPipeConnection(Processor p) {
-		m_connections = new HashMap<Integer, Processor>();
+	protected ArrayList<Tuples<Processor, Processor>> m_processorList = new ArrayList<Tuples<Processor, Processor>>();
+	protected Tuples<Processor, Processor> tuples;
+	
+	protected class Tuples<ProcessorIn, ProcessorOut>{
+		protected  Processor m_PInput;
+		protected  Processor m_POutput;
+		
+		protected Tuples(Processor input, Processor output) {
+			m_PInput = input;
+			m_POutput = output;
+		}
+	}
+	
+	public PipeConnection(Processor p) {
 		this.crawl(p);
+	}
+	
+	public ArrayList<Tuples<Processor, Processor>> getList(){
+		return m_processorList;
 	}
 	
 	@Override
 	public void visit(Processor p) {
 		int out_arity = p.getOutputArity();
-		//System.out.println("arrity " + out_arity );
 		
 		for (int i = 0; i < out_arity; i++) {
 			Pushable push = p.getPushableOutput(i);
 			
 			if (push != null){
-				//System.out.println("pushable " + push );
 				Processor target = push.getProcessor();
-				//System.out.println("target " + target );
-				int j = push.getPosition();
-				//System.out.println("position " + j );
-				
-				//Processor new_p;
-		        int new_target;
-		        //new_p = m_connections.get(p.getId());
-	            new_target = target.getId();
-	            m_connections.put(p.getId(), target);
-	            
-	            System.out.println("This: " + p.getShortName() +", ID: " + p.getId() +", Target: " + target.getShortName() +", ID: " + target.getId());
-	            //System.out.println("Target" + target);
+		        tuples = new Tuples<Processor, Processor>(p, target);
+		        m_processorList.add(tuples);
 			}
 		}
 	}

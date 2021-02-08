@@ -104,6 +104,6 @@ public void writingSMV(FileWriter file, int Id) throws IOException{
 	file.write("		TRUE : 0; \n");
 	file.write("	esac; \n");
 	file.write("\n");
-	
+	//printStream = new printStream(fileWriter);
   }
 }

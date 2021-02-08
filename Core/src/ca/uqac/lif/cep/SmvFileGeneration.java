@@ -16,6 +16,9 @@ public class SmvFileGeneration {
 	private static ArrayList<String> m_Modules = new ArrayList<String>();
 	protected static ArrayList<Tuples<Processor, Integer, Processor, Integer>> m_ProcessorChain;
 	
+	private static int m_minInput;
+	private static int m_maxInput;
+	
 	//Processor p will be the first processor of the chain.
 	public SmvFileGeneration(Processor p) throws IOException {
 		generateSMV("Generation");
@@ -133,9 +136,63 @@ public class SmvFileGeneration {
 	}
 	
 	private void generateMain() throws IOException {
+		int minValue = 0;
+		int nbPipes = 0;
+		int maxValue = 0;
+		String s;
+		
 		smvFileWriter.write("MODULE main \n");
 		smvFileWriter.write("	VAR \n");
-		smvFileWriter.close();
+		
+		/*
+		}*/
+		for(int i = 0; i < m_ProcessorChain.size(); i++) {
+			System.out.println(m_ProcessorChain.get(i).m_PInput.getShortName() + " " +m_ProcessorChain.get(i).m_arityIn + " " + m_ProcessorChain.get(i).m_POutput.getShortName() + " " + m_ProcessorChain.get(i).m_arityOut);
+			
+			//Assuming the first one is always a QueueSource;
+			if(nbPipes == 0) {
+				s = m_ProcessorChain.get(0).m_PInput.getShortName();
+				if(s.equals("QueueSource")) {
+					QueueSource q = (QueueSource)m_ProcessorChain.get(0).m_PInput;
+					minValue = q.getMinValue();
+					maxValue = q.getMaxValue();
+					
+					smvFileWriter.write("		pipe_"+nbPipes+" : ");
+					if(minValue >= 0){
+						smvFileWriter.write("0.."+Integer.toString(maxValue)+ "; \n");
+					}
+					else {
+						smvFileWriter.write(Integer.toString(minValue) + ".." + Integer.toString(maxValue)+ "; \n");
+					}
+					smvFileWriter.write("		b_pipe_"+nbPipes+" : boolean; \n");
+				}
+				nbPipes++;
+			}
+				
+			if(m_ProcessorChain.get(i).m_arityIn == 0 && m_ProcessorChain.get(i).m_arityOut == 0) {
+				s = m_ProcessorChain.get(i).m_POutput.getShortName();
+				switch(s) {
+				case "Doubler":
+					minValue *= 2;
+					maxValue *= 2;
+					smvFileWriter.write("		pipe_"+nbPipes+" : ");
+					if(minValue > 0){
+						smvFileWriter.write("0.."+Integer.toString(maxValue)+ "; \n");
+					}
+					else {
+						smvFileWriter.write(Integer.toString(minValue) + ".." + Integer.toString(maxValue)+ "; \n");
+					}
+					smvFileWriter.write("		b_pipe_"+nbPipes+" : boolean; \n");
+					nbPipes++;
+					break;
+					
+				default:
+					//System.out.println(processorsToGenerate.get(i).getShortName()+": This module is not supported at the moment");
+					break;
+				}
+			}
+		}
+		smvFileWriter.close();	
 	}
 
 }

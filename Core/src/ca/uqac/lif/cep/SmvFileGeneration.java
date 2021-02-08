@@ -137,21 +137,21 @@ public class SmvFileGeneration {
 	}
 	
 	private void generateMain() throws IOException {
+		ArrayList<String> smvVariables = new ArrayList<String>();
+		ArrayList<Integer> modulesID = new ArrayList<Integer>();
 		int minValue = 0;
-		int nbPipes = 0;
 		int maxValue = 0;
+		int nbPipes = 1;
 		String s;
 		
 		smvFileWriter.write("MODULE main \n");
 		smvFileWriter.write("	VAR \n");
-		
-		/*
-		}*/
+
 		for(int i = 0; i < m_ProcessorChain.size(); i++) {
 			System.out.println(m_ProcessorChain.get(i).m_PInput.getShortName() + " " +m_ProcessorChain.get(i).m_arityIn + " " + m_ProcessorChain.get(i).m_POutput.getShortName() + " " + m_ProcessorChain.get(i).m_arityOut);
 			
 			//Assuming the first one is always a QueueSource;
-			if(nbPipes == 0) {
+			if(nbPipes == 1) {
 				s = m_ProcessorChain.get(0).m_PInput.getShortName();
 				if(s.equals("QueueSource")) {
 					QueueSource q = (QueueSource)m_ProcessorChain.get(0).m_PInput;
@@ -166,8 +166,8 @@ public class SmvFileGeneration {
 						smvFileWriter.write(Integer.toString(minValue) + ".." + Integer.toString(maxValue)+ "; \n");
 					}
 					smvFileWriter.write("		b_pipe_"+nbPipes+" : boolean; \n");
+					smvVariables.add("		qs"+ q.getId()+" : QueueSource" +q.getId()+ " (pipe_"+nbPipes+", b_pipe_"+nbPipes+");\n");
 				}
-				nbPipes++;
 			}
 				
 			if(m_ProcessorChain.get(i).m_arityIn == 0 && m_ProcessorChain.get(i).m_arityOut == 0) {
@@ -184,7 +184,9 @@ public class SmvFileGeneration {
 						smvFileWriter.write(Integer.toString(minValue) + ".." + Integer.toString(maxValue)+ "; \n");
 					}
 					smvFileWriter.write("		b_pipe_"+nbPipes+" : boolean; \n");
-					nbPipes++;
+					
+					smvVariables.add("		doubler"+nbPipes+" : Doubler(pipe_"+nbPipes+", b_pipe_"+nbPipes+", pipe_"+(nbPipes+1) +", b_pipe_"+(nbPipes+1)+"); \n");
+
 					break;
 					
 				default:
@@ -192,6 +194,11 @@ public class SmvFileGeneration {
 					break;
 				}
 			}
+			nbPipes++;
+		}
+		smvFileWriter.write("\n");
+		for(int i = 0; i < smvVariables.size(); i++) {
+			smvFileWriter.write(smvVariables.get(i));
 		}
 		smvFileWriter.close();	
 	}

@@ -176,21 +176,21 @@ public class SmvFileGeneration {
 				case "Doubler":
 					minValue *= 2;
 					maxValue *= 2;
-					smvFileWriter.write("		pipe_"+nbPipes+" : ");
+					smvFileWriter.write("		pipe_"+(nbPipes+1)+" : ");
 					if(minValue > 0){
 						smvFileWriter.write("0.."+Integer.toString(maxValue)+ "; \n");
 					}
 					else {
 						smvFileWriter.write(Integer.toString(minValue) + ".." + Integer.toString(maxValue)+ "; \n");
 					}
-					smvFileWriter.write("		b_pipe_"+nbPipes+" : boolean; \n");
+					smvFileWriter.write("		b_pipe_"+(nbPipes+1)+" : boolean; \n");
 					
 					smvVariables.add("		doubler"+nbPipes+" : Doubler(pipe_"+nbPipes+", b_pipe_"+nbPipes+", pipe_"+(nbPipes+1) +", b_pipe_"+(nbPipes+1)+"); \n");
 
 					break;
 					
 				default:
-					//System.out.println(processorsToGenerate.get(i).getShortName()+": This module is not supported at the moment");
+					System.out.println(s + ": This module is not supported at the moment");
 					break;
 				}
 			}

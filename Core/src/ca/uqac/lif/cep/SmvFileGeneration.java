@@ -66,24 +66,25 @@ public class SmvFileGeneration {
 				inputToBeGenerate = false;
 				outputToBeGenerated = false;
 				
-				//Comparing the IDs
+				//We first add both procesors
 				if(processorsToGenerate.size() == 0) {
 					processorsToGenerate.add(processorInputTemp);
 					processorsToGenerate.add(processorOutputTemp);
 				}
+				//We then check if
 				else {
 					for(int j = 0; j < processorsToGenerate.size(); j++) {
-						if(processorInputTemp.getId() == processorsToGenerate.get(j).getId()) {
+						if(processorInputTemp.getId() != processorsToGenerate.get(j).getId()) {
 							inputToBeGenerate = checkDuplication(processorInputTemp.getShortName());
 						}
 						else {
-							inputToBeGenerate = true;
+							inputToBeGenerate = false;
 						}
-						if(processorOutputTemp.getId() == processorsToGenerate.get(j).getId()) {
+						if(processorOutputTemp.getId() != processorsToGenerate.get(j).getId()) {
 							outputToBeGenerated = checkDuplication(processorInputTemp.getShortName());;
 						}
 						else {
-							outputToBeGenerated = true;
+							outputToBeGenerated = false;
 						}
 					}
 					if(inputToBeGenerate) {

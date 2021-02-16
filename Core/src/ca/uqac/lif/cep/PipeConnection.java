@@ -46,6 +46,8 @@ public class PipeConnection extends PipeCrawler {
 			Pushable push = p.getPushableOutput(i);
 	        // int j = push.getPosition();
 			
+			
+			//PUSH IS NULL??
 			if (push != null){
 				Processor target = push.getProcessor();
 				int j = push.getPosition();

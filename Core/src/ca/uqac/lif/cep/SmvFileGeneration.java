@@ -7,23 +7,27 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import ca.uqac.lif.cep.PipeConnection.Tuples;
+import ca.uqac.lif.cep.tmf.CountDecimate;
 import ca.uqac.lif.cep.tmf.QueueSource;
 
 public class SmvFileGeneration {
 	public FileWriter smvFileWriter;
 	public File smvFile;
 	
-	private static ArrayList<String> m_Modules = new ArrayList<String>();
-	private static ArrayList<Integer> m_SourceID = new ArrayList<Integer>();
+	protected static ArrayList<String> m_Modules = new ArrayList<String>();
+	protected static ArrayList<Integer> m_SourceID = new ArrayList<Integer>();
 	protected static ArrayList<Tuples<Processor, Integer, Processor, Integer>> m_ProcessorChain;
-	int arrayWidth = 0;
-	int totalProcessors = 0;
-	int maxOutputArrity = 0;
-	int maxInputArrity = 0;
+	protected static ArrayList<String> m_Functions = new ArrayList<String>();
+	
+	protected int arrayWidth = 0;
+	protected int maxOutputArrity = 0;
+	protected int maxInputArrity = 0;
 	
 	//Processor p will be the first processor of the chain.
 	public SmvFileGeneration(Processor p) throws IOException {
 		generateSMV("Generation");
+		//generateSMV publique
+		//variable interne longueur de fil
 		distribute(p);
 	}
 
@@ -54,7 +58,7 @@ public class SmvFileGeneration {
 	 }
 	
 	protected void generateModules(ArrayList<Tuples<Processor, Integer, Processor, Integer>> list) throws IOException {
-		boolean inputToBeGenerate = false;
+		boolean inputToBeGenerated = false;
 		boolean outputToBeGenerated = false;
 		
 		/*
@@ -66,8 +70,9 @@ public class SmvFileGeneration {
 			for(int i = 0; i < list.size(); i++) {
 				Processor processorInputTemp = list.get(i).m_PInput;
 				Processor processorOutputTemp = list.get(i).m_POutput;
-				inputToBeGenerate = false;
-				outputToBeGenerated = false;
+				
+				inputToBeGenerated = true;
+				outputToBeGenerated = true;
 				
 				//We first add both processors
 				if(processorsToGenerate.size() == 0) {
@@ -77,26 +82,36 @@ public class SmvFileGeneration {
 				//We then check if
 				else {
 					for(int j = 0; j < processorsToGenerate.size(); j++) {
-						if(processorInputTemp.getId() != processorsToGenerate.get(j).getId()) {
-							inputToBeGenerate = checkDuplication(processorInputTemp.getShortName());
+						if(processorInputTemp.getId() == processorsToGenerate.get(j).getId()) {
+							inputToBeGenerated = false;
 						}
-						else {
-							inputToBeGenerate = false;
-						}
-						if(processorOutputTemp.getId() != processorsToGenerate.get(j).getId()) {
-							outputToBeGenerated = checkDuplication(processorInputTemp.getShortName());;
-						}
-						else {
+						if(processorOutputTemp.getId() == processorsToGenerate.get(j).getId()) {
+							//outputToBeGenerated = checkDuplication(processorOutputTemp.getShortName());
 							outputToBeGenerated = false;
 						}
 					}
-					if(inputToBeGenerate) {
-						processorsToGenerate.add(processorInputTemp);
+					
+					if(inputToBeGenerated) {
+						for(int k = 0; k < processorsToGenerate.size(); k++) {
+							if(processorInputTemp.getShortName().equals(processorsToGenerate.get(k).getShortName())) {
+								inputToBeGenerated = checkDuplication(processorInputTemp.getShortName());
+							}
+						}
+						if(inputToBeGenerated) {
+							processorsToGenerate.add(processorInputTemp);
+						}
 					}
 					if(outputToBeGenerated) {
-						processorsToGenerate.add(processorOutputTemp);
+						for(int k = 0; k < processorsToGenerate.size(); k++) {
+							if(processorOutputTemp.getShortName().equals(processorsToGenerate.get(k).getShortName())) {
+								outputToBeGenerated = checkDuplication(processorOutputTemp.getShortName());
+							}
+						}
+						if(outputToBeGenerated) {
+							processorsToGenerate.add(processorOutputTemp);
+						}
 					}
-				}
+			}
 		}
 			
 			//Now that we have all the modules to generates, let's generate them.
@@ -105,16 +120,25 @@ public class SmvFileGeneration {
 				
 				switch(processorShortName) {
 				case "QueueSource":
-					QueueSource q = (QueueSource)processorsToGenerate.get(i);
-					q.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
+					queueSource.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
 					m_SourceID.add(processorsToGenerate.get(i).getId());
 					break;
 					
 				case "Doubler":
-					Doubler d = (Doubler)processorsToGenerate.get(i);
-					d.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					Doubler doubler = (Doubler)processorsToGenerate.get(i);
+					doubler.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
 					break;
 					
+				case "CountDecimate":
+					CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
+					countDecimate.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					break;
+					
+				case "Adder":
+					Adder add = (Adder)processorsToGenerate.get(i);
+					add.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					break;
 				default:
 					System.out.println(processorsToGenerate.get(i).getShortName()+": This module is not supported at the moment");
 					break;
@@ -127,7 +151,8 @@ public class SmvFileGeneration {
 	 **/
 	private void fillModuleList() {
 		m_Modules.add("QueueSource");
-		m_Modules.add("Decimate");
+		m_Modules.add("CountDecimate");
+		m_Modules.add("Adder");
 	}
 	
 	private boolean checkDuplication(String processorShortName) {
@@ -239,6 +264,7 @@ public class SmvFileGeneration {
 					if(m_ProcessorChain.get(id).m_POutput.getPushableOutput(0) == null) {
 						//Storing and writing the values of m_POutput
 						s = m_ProcessorChain.get(id).m_POutput.getShortName();
+						smvFileWriter.write("		--OUTPUT \n");
 						generateValues(connectionArray, s, id, m_ProcessorChain.get(id).m_POutput.getId());
 						//This is the last processor
 						canBeGenerated = false;
@@ -255,6 +281,11 @@ public class SmvFileGeneration {
 			}
 		}
 		smvFileWriter.write("\n");
+		
+		//Writing the functions
+		for(int i = 0 ; i < m_Functions.size(); i++) {
+			smvFileWriter.write("		"+ m_Functions.get(i));
+		}
 		
 		//Closing the file
 		smvFileWriter.close();	
@@ -276,16 +307,17 @@ public class SmvFileGeneration {
 			}
 			connectionArray[ProcId][1] = q.getMaxValue();
 			smvFileWriter.write(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
-			
+			m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 			break;
 		case "Doubler":
-			int prec = connectionArray[ProcId][arrayWidth - maxInputArrity];
+			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
 			smvFileWriter.write("		--Doubler\n");
 			//new Minimum value
-			connectionArray[ProcId][0] = (connectionArray[prec][0])*2;
+			connectionArray[ProcId][0] = (connectionArray[prec1][0])*2;
 			//new Maximum value
-			connectionArray[ProcId][1] = (connectionArray[prec][1])*2;
+			connectionArray[ProcId][1] = (connectionArray[prec1][1])*2;
 			smvFileWriter.write("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			m_Functions.add("doubler"+ProcId+" : Doubler(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 			break;
 		case "CountDecimate":
 			
@@ -296,6 +328,7 @@ public class SmvFileGeneration {
 			//new Maximum value
 			connectionArray[ProcId][1] = (connectionArray[prec1][1]);
 			smvFileWriter.write("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			m_Functions.add("decimate"+ProcId+" : CountDecimate"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 			break;
 		case "Adder":
 			smvFileWriter.write("		--Adder \n");
@@ -306,8 +339,8 @@ public class SmvFileGeneration {
 				//new Maximum value
 				connectionArray[ProcId][1] = (connectionArray[prec1][1] + connectionArray[prec2][1]);
 				smvFileWriter.write("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+				m_Functions.add("adder"+ProcId+" : Adder"+ProcId+" (pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2 +", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 				break;
-				
 			//}
 		default:
 			break;

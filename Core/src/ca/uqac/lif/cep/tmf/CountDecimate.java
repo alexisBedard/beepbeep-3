@@ -17,6 +17,8 @@
  */
 package ca.uqac.lif.cep.tmf;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -142,5 +144,32 @@ public class CountDecimate extends Decimate
         (Boolean) map.get("process-last"));
     cd.m_current = ((Number) map.get("current")).intValue();
     return cd;
+  }
+  
+  public void writingSMV(FileWriter file, int Id) throws IOException{
+	  file.write("MODULE CountDecimate"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
+	  file.write("	VAR \n");
+	  file.write("		cnt : 0.."+Integer.toString(m_interval) +"; \n");
+	  file.write("\n");
+	  file.write("	ASSIGN \n");
+	  file.write("		init(ouc_1) := case \n");
+	  file.write("			inb_1 : inc_1; \n");
+	  file.write("			TRUE : 0; \n");
+	  file.write("		esac; \n");
+	  file.write("\n");
+	  file.write("		init(cnt) := 1; \n");
+	  file.write("		init(oub_1) := inb_1; \n");
+	  file.write("\n");
+	  file.write("		next(ouc_1) := case \n");
+	  file.write("			next(inb_1) & cnt = 0 : next(inc_1); \n");
+	  file.write("			TRUE : 0; \n");
+	  file.write("		esac; \n");
+	  file.write("\n");
+	  file.write("		next(oub_1) := next(inb_1) & cnt = 0; \n");
+	  file.write("		next(cnt) := case \n");
+	  file.write("			next(inb_1) : (cnt + 1) mod " + Integer.toString(m_interval + 1)+"; \n");
+	  file.write("			TRUE : cnt; \n");
+	  file.write("		esac; \n");
+	  file.write("\n");
   }
 }

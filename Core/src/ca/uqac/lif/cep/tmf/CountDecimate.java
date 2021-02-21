@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import ca.uqac.lif.cep.SMVInterface;
+
 /**
  * Returns one input event and discards the next <i>n</i>-1. The value <i>n</i> is called
  * the <strong>decimation interval</strong>. However, a mode can be specified in order to
@@ -36,7 +38,7 @@ import java.util.Map;
  * @since 0.2.1
  */
 @SuppressWarnings("squid:S2160")
-public class CountDecimate extends Decimate
+public class CountDecimate extends Decimate implements SMVInterface
 {
   /**
    * The decimation interval
@@ -146,6 +148,7 @@ public class CountDecimate extends Decimate
     return cd;
   }
   
+  @Override
   public void writingSMV(FileWriter file, int Id) throws IOException{
 	  file.write("MODULE CountDecimate"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
 	  file.write("	VAR \n");

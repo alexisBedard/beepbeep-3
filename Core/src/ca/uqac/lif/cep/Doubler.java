@@ -47,7 +47,7 @@ import ca.uqac.lif.cep.util.Strings;
  * @author Sylvain Hallé
  * @since 0.10.1
  */
-public class Doubler extends SynchronousProcessor
+public class Doubler extends SynchronousProcessor implements SMVInterface
 {
   /**
    * Creates a new adder processor. Since this processor is stateless, it would
@@ -84,7 +84,8 @@ public class Doubler extends SynchronousProcessor
     return new Doubler();
   }
   
-public void writingSMV(FileWriter file, int Id) throws IOException{
+@Override
+public void writingSMV(FileWriter file, int Id) throws IOException {
 	file.write("MODULE Doubler(inc_1, inb_1, ouc_1, oub_1) \n");
 	file.write("	ASSIGN \n");
 	file.write("		init(ouc_1) := case \n");
@@ -105,5 +106,5 @@ public void writingSMV(FileWriter file, int Id) throws IOException{
 	file.write("	esac; \n");
 	file.write("\n");
 	//printStream = new printStream(fileWriter);
-  }
+	}
 }

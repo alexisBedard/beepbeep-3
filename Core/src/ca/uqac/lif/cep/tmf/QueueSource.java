@@ -17,6 +17,7 @@
  */
 package ca.uqac.lif.cep.tmf;
 
+import ca.uqac.lif.cep.SMVInterface;
 import ca.uqac.lif.cep.Connector.Variant;
 import ca.uqac.lif.petitpoucet.DirectValue;
 import ca.uqac.lif.petitpoucet.NodeFunction;
@@ -41,7 +42,7 @@ import java.util.Queue;
  * @since 0.1
  */
 @SuppressWarnings("squid:S2160")
-public class QueueSource extends Source
+public class QueueSource extends Source implements SMVInterface
 {
   /**
    * The events to repeat endlessly
@@ -333,6 +334,7 @@ public class QueueSource extends Source
 	  return (Integer)m_events.get(index);
   }
   
+  @Override
   public void writingSMV(FileWriter file, int Id) throws IOException{
 	  	file.write("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
 		file.write("	VAR \n");

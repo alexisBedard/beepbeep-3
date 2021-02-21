@@ -45,7 +45,7 @@ import java.util.Queue;
  * @author Sylvain Hallé
  * @since 0.10.1
  */
-public class Adder extends SynchronousProcessor
+public class Adder extends SynchronousProcessor implements SMVInterface
 {
   /**
    * Creates a new adder processor. Since this processor is stateless, it would
@@ -84,6 +84,7 @@ public class Adder extends SynchronousProcessor
   }
   //Interface smvWritable Implements
   
+  @Override
   public void writingSMV(FileWriter file, int Id) throws IOException{
 	  file.write("MODULE Adder"+Id+"(inc_1, inb_1, inc_2, inb_2, ouc_1, oub_1) \n");
 	  file.write("	VAR \n");

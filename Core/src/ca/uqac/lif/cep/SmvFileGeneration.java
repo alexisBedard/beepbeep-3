@@ -11,8 +11,10 @@ import ca.uqac.lif.cep.tmf.CountDecimate;
 import ca.uqac.lif.cep.tmf.QueueSource;
 
 public class SmvFileGeneration {
-	public FileWriter smvFileWriter;
-	public File smvFile;
+	protected FileWriter smvFileWriter;
+	protected File smvFile;
+	
+	private int m_WaitingList;
 	
 	protected static ArrayList<String> m_Modules = new ArrayList<String>();
 	protected static ArrayList<Integer> m_SourceID = new ArrayList<Integer>();
@@ -23,17 +25,10 @@ public class SmvFileGeneration {
 	protected int maxOutputArrity = 0;
 	protected int maxInputArrity = 0;
 	
+	
 	//Processor p will be the first processor of the chain.
-	public SmvFileGeneration(Processor p) throws IOException {
-		generateSMV("Generation");
-		//generateSMV publique
-		//variable interne longueur de fil
-		distribute(p);
-	}
-
-	public SmvFileGeneration(Processor p, String filename) throws IOException {
-		generateSMV(filename);
-		distribute(p);
+	public SmvFileGeneration(int waitingList) throws IOException {
+		m_WaitingList = waitingList;
 	}
 	
 	private void distribute(Processor p) throws IOException {
@@ -45,7 +40,7 @@ public class SmvFileGeneration {
 		
 	}
 
-	protected void generateSMV(String filename) throws IOException{
+	public void generateSMV(Processor p, String filename) throws IOException{
 		  smvFile = new File(filename + ".smv");
 			try {
 					smvFileWriter = new FileWriter(smvFile);
@@ -55,6 +50,8 @@ public class SmvFileGeneration {
 			      System.out.println("An error occurred.");
 			      e.printStackTrace();
 			}		
+			
+			distribute(p);
 	 }
 	
 	protected void generateModules(ArrayList<Tuples<Processor, Integer, Processor, Integer>> list) throws IOException {
@@ -121,23 +118,23 @@ public class SmvFileGeneration {
 				switch(processorShortName) {
 				case "QueueSource":
 					QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
-					queueSource.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					queueSource.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
 					m_SourceID.add(processorsToGenerate.get(i).getId());
 					break;
 					
 				case "Doubler":
 					Doubler doubler = (Doubler)processorsToGenerate.get(i);
-					doubler.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					doubler.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
 					break;
 					
 				case "CountDecimate":
 					CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
-					countDecimate.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					countDecimate.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
 					break;
 					
 				case "Adder":
 					Adder add = (Adder)processorsToGenerate.get(i);
-					add.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId());
+					add.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), m_WaitingList);
 					break;
 				default:
 					System.out.println(processorsToGenerate.get(i).getShortName()+": This module is not supported at the moment");

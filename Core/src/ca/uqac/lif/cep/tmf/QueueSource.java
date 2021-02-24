@@ -335,7 +335,7 @@ public class QueueSource extends Source implements SMVInterface
   }
   
   @Override
-  public void writingSMV(FileWriter file, int Id) throws IOException{
+  public void writingSMV(FileWriter file, int Id, int list) throws IOException{
 	  	file.write("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
 		file.write("	VAR \n");
 		//file.write("		source : array 0.." + Integer.toString(this.getSize() -1) +" of ");

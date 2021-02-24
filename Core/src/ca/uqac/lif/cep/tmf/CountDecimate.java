@@ -149,7 +149,7 @@ public class CountDecimate extends Decimate implements SMVInterface
   }
   
   @Override
-  public void writingSMV(FileWriter file, int Id) throws IOException{
+  public void writingSMV(FileWriter file, int Id, int list) throws IOException{
 	  file.write("MODULE CountDecimate"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
 	  file.write("	VAR \n");
 	  file.write("		cnt : 0.."+Integer.toString(m_interval) +"; \n");

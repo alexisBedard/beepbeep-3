@@ -108,4 +108,9 @@ public void writingSMV(FileWriter file, int Id, int list) throws IOException {
 	file.write("\n");
 	//printStream = new printStream(fileWriter);	
 	}
+
+//@Override
+/*public void writingSMV(FileWriter file, int Id) throws IOException {
+	writingSMV(file, Id, 3);
+	}*/
 }

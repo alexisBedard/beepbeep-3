@@ -19,7 +19,11 @@ package ca.uqac.lif.cep.tmf;
 
 import ca.uqac.lif.cep.Pullable;
 import ca.uqac.lif.cep.Pushable;
+import ca.uqac.lif.cep.SMVInterface;
 import ca.uqac.lif.cep.UniformProcessor;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
@@ -33,7 +37,7 @@ import java.util.Queue;
  * @since 0.1
  */
 @SuppressWarnings("squid:S2160")
-public class Fork extends UniformProcessor
+public class Fork extends UniformProcessor implements SMVInterface
 {
   public Fork(int out_arity)
   {
@@ -108,4 +112,30 @@ public class Fork extends UniformProcessor
   {
     return new Fork(((Number) o).intValue());
   }
+
+  @Override
+  public void writingSMV(FileWriter file, int Id, int list) throws IOException {
+	  file.write("MODULE Fork (");
+	  		//+ "inc_1, inb_1, ouc_1, oub_1, ouc_2, oub_2) \n");
+	  System.out.println(getOutputArity());
+	  for(int i = 1; i <= getOutputArity(); i++) {
+		  if(i != getOutputArity()) {
+			  file.write("inc_"+i+", inb_"+i+" ,");
+		  }
+		  else {
+			  file.write("inc_"+i+", inb_"+i+"); \n");
+		  }
+	  }
+	  file.write("	ASSIGN \n");
+	  for(int i = 1; i <= getOutputArity(); i++) {
+		  file.write("		init(ouc_"+i+") := inc_"+i+"; \n");
+		  file.write("		init(oub_"+i+") := inb_"+i+"; \n");
+	  }
+	  file.write(" \n");
+	  for(int i = 1; i <= getOutputArity(); i++) {
+		  file.write("		next(ouc_"+i+") := next(inc_"+i+"); \n");
+		  file.write("		next(oub_"+i+") := next(inb_"+i+"); \n");
+	  }
+	  file.write(" \n");
+	}
 }

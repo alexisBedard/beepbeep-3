@@ -19,6 +19,7 @@ package ca.uqac.lif.cep.tmf;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -149,30 +150,30 @@ public class CountDecimate extends Decimate implements SMVInterface
   }
   
   @Override
-  public void writingSMV(FileWriter file, int Id, int list) throws IOException{
-	  file.write("MODULE CountDecimate"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
-	  file.write("	VAR \n");
-	  file.write("		cnt : 0.."+Integer.toString(m_interval) +"; \n");
-	  file.write("\n");
-	  file.write("	ASSIGN \n");
-	  file.write("		init(ouc_1) := case \n");
-	  file.write("			inb_1 : inc_1; \n");
-	  file.write("			TRUE : 0; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
-	  file.write("		init(cnt) := 1; \n");
-	  file.write("		init(oub_1) := inb_1; \n");
-	  file.write("\n");
-	  file.write("		next(ouc_1) := case \n");
-	  file.write("			next(inb_1) & cnt = 0 : next(inc_1); \n");
-	  file.write("			TRUE : 0; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
-	  file.write("		next(oub_1) := next(inb_1) & cnt = 0; \n");
-	  file.write("		next(cnt) := case \n");
-	  file.write("			next(inb_1) : (cnt + 1) mod " + Integer.toString(m_interval + 1)+"; \n");
-	  file.write("			TRUE : cnt; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
+  public void writingSMV(PrintStream printStream, int Id, int list) throws IOException{
+	  printStream.printf("MODULE CountDecimate"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
+	  printStream.printf("	VAR \n");
+	  printStream.printf("		cnt : 0.."+Integer.toString(m_interval) +"; \n");
+	  printStream.printf("\n");
+	  printStream.printf("	ASSIGN \n");
+	  printStream.printf("		init(ouc_1) := case \n");
+	  printStream.printf("			inb_1 : inc_1; \n");
+	  printStream.printf("			TRUE : 0; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
+	  printStream.printf("		init(cnt) := 1; \n");
+	  printStream.printf("		init(oub_1) := inb_1; \n");
+	  printStream.printf("\n");
+	  printStream.printf("		next(ouc_1) := case \n");
+	  printStream.printf("			next(inb_1) & cnt = 0 : next(inc_1); \n");
+	  printStream.printf("			TRUE : 0; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
+	  printStream.printf("		next(oub_1) := next(inb_1) & cnt = 0; \n");
+	  printStream.printf("		next(cnt) := case \n");
+	  printStream.printf("			next(inb_1) : (cnt + 1) mod " + Integer.toString(m_interval + 1)+"; \n");
+	  printStream.printf("			TRUE : cnt; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
   }
 }

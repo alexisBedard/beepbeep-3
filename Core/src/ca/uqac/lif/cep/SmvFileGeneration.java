@@ -1,8 +1,11 @@
 package ca.uqac.lif.cep;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -14,6 +17,8 @@ import ca.uqac.lif.cep.tmf.QueueSource;
 public class SmvFileGeneration {
 	protected FileWriter smvFileWriter;
 	protected File smvFile;
+	protected OutputStream SmvFile;
+	protected PrintStream printStream;
 	
 	private int m_WaitingList;
 	
@@ -43,17 +48,10 @@ public class SmvFileGeneration {
 	}
 
 	public void generateSMV(Processor p, String filename) throws IOException{
-		  smvFile = new File(filename + ".smv");
-			try {
-					smvFileWriter = new FileWriter(smvFile);
-					System.out.println("File created");
-			    } 
-			catch (IOException e) {
-			      System.out.println("An error occurred.");
-			      e.printStackTrace();
-			}		
+		SmvFile = new FileOutputStream(filename + ".smv");
+		printStream = new PrintStream(SmvFile);
 			
-			distribute(p);
+		distribute(p);
 	 }
 	
 	protected void generateModules(ArrayList<Tuples<Processor, Integer, Processor, Integer>> list) throws IOException {
@@ -119,28 +117,28 @@ public class SmvFileGeneration {
 				switch(processorShortName) {
 				case "QueueSource":
 					QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
-					queueSource.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
+					queueSource.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
 					m_SourceID.add(processorsToGenerate.get(i).getId());
 					break;
 					
 				case "Doubler":
 					Doubler doubler = (Doubler)processorsToGenerate.get(i);
-					doubler.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
+					doubler.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
 					break;
 					
 				case "CountDecimate":
 					 CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
-					countDecimate.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
+					countDecimate.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
 					break;
 					
 				case "Adder":
 					Adder add = (Adder)processorsToGenerate.get(i);
-					add.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), m_WaitingList);
+					add.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList);
 					break;
 					
 				case "Fork":
 					Fork fork = (Fork)processorsToGenerate.get(i);
-					fork.writingSMV(smvFileWriter, processorsToGenerate.get(i).getId(), 0);
+					fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
 					break;
 					
 				default:
@@ -222,8 +220,8 @@ public class SmvFileGeneration {
 				connectionArray[i][j] = -1;
 			}
 		}
-		smvFileWriter.write("MODULE main \n");
-		smvFileWriter.write("	VAR \n");
+		printStream.printf("MODULE main \n");
+		printStream.printf("	VAR \n");
 		
 		boolean canBeGenerated = false;
 		int id = 0;
@@ -280,7 +278,7 @@ public class SmvFileGeneration {
 							if(m_ProcessorChain.get(id).m_POutput.getPushableOutput(0) == null) {
 								//Storing and writing the values of m_POutput
 								s = m_ProcessorChain.get(id).m_POutput.getShortName();
-								smvFileWriter.write("		--OUTPUT \n");
+								printStream.printf("		--OUTPUT \n");
 								generateValues(connectionArray, s, id, m_ProcessorChain.get(id).m_POutput.getId());
 								//This is the last processor
 								canBeGenerated = false;
@@ -303,15 +301,15 @@ public class SmvFileGeneration {
 				}
 				
 		}
-		smvFileWriter.write("\n");
+		printStream.printf("\n");
 		
 		//Writing the functions
 		for(int i = 0 ; i < m_Functions.size(); i++) {
-			smvFileWriter.write("		"+ m_Functions.get(i));
+			printStream.printf("		"+ m_Functions.get(i));
 		}
 		
 		//Closing the file
-		smvFileWriter.close();	
+		printStream.close();
 	}
 
 	private void generateValues(int[][] connectionArray, String s, int id, int ProcId) throws IOException {
@@ -320,9 +318,9 @@ public class SmvFileGeneration {
 		String string = "";
 		switch(s) {
 		case "QueueSource" :
-			smvFileWriter.write("		--QueueSource \n");
+			printStream.printf("		--QueueSource \n");
 			QueueSource q = (QueueSource)m_ProcessorChain.get(id).m_PInput;
-			smvFileWriter.write("		pipe_"+ProcId+" : ");
+			printStream.printf("		pipe_"+ProcId+" : ");
 			if(q.getMinValue() >= 0) {
 				connectionArray[ProcId][0] = 0;
 			}
@@ -330,19 +328,19 @@ public class SmvFileGeneration {
 				connectionArray[ProcId][0] = q.getMinValue();
 			}
 			connectionArray[ProcId][1] = q.getMaxValue();
-			smvFileWriter.write(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
-			smvFileWriter.write("		b_pipe_"+ProcId+ " : boolean; \n");
+			printStream.printf(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
+			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
 			m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 			break;
 		case "Doubler":
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-			smvFileWriter.write("		--Doubler\n");
+			printStream.printf("		--Doubler\n");
 			//new Minimum value
 			connectionArray[ProcId][0] = (connectionArray[prec1][0])*2;
 			//new Maximum value
 			connectionArray[ProcId][1] = (connectionArray[prec1][1])*2;
-			smvFileWriter.write("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			smvFileWriter.write("		b_pipe_"+ProcId+ " : boolean; \n");
+			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
 			if(isMultipleOutput(prec1)) {
 				int outputPosition = 0;
 				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
@@ -360,14 +358,14 @@ public class SmvFileGeneration {
 
 			break;
 		case "CountDecimate":
-			smvFileWriter.write("		--CountDecimate \n");
+			printStream.printf("		--CountDecimate \n");
 			//new Minimum value
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
 			connectionArray[ProcId][0] = (connectionArray[prec1][0]);
 			//new Maximum value
 			connectionArray[ProcId][1] = (connectionArray[prec1][1]);
-			smvFileWriter.write("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			smvFileWriter.write("		b_pipe_"+ProcId+ " : boolean; \n");
+			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
 			
 			if(isMultipleOutput(prec1)) {
 				int outputPosition = 0;
@@ -385,15 +383,15 @@ public class SmvFileGeneration {
 			}
 			break;
 		case "Adder":
-			smvFileWriter.write("		--Adder \n");
+			printStream.printf("		--Adder \n");
 			//new Minimum value
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
 			prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
 			connectionArray[ProcId][0] = (connectionArray[prec1][0] + connectionArray[prec2][0]);
 			//new Maximum value
 			connectionArray[ProcId][1] = (connectionArray[prec1][1] + connectionArray[prec2][1]);
-			smvFileWriter.write("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			smvFileWriter.write("		b_pipe_"+ProcId+ " : boolean; \n");
+			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
 			
 			if(isMultipleOutput(prec1)) {
 				int outputPosition = 0;
@@ -440,10 +438,10 @@ public class SmvFileGeneration {
 				}
 			}
 			if(completed) {
-				smvFileWriter.write("		--Fork \n");
+				printStream.printf("		--Fork \n");
 				for(int i = 0; i < f.getOutputArity(); i++) {
-					smvFileWriter.write("		pipe_"+ProcId+"_"+i+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-					smvFileWriter.write("		b_pipe_"+ProcId+ "_"+i+" : boolean; \n");
+					printStream.printf("		pipe_"+ProcId+"_"+i+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+					printStream.printf("		b_pipe_"+ProcId+ "_"+i+" : boolean; \n");
 				}
 				 string = "fork"+ProcId+" : Fork"+ProcId+ "(pipe_"+prec1+", b_pipe_"+prec1+", ";
 				for(int i = 0; i < f.getOutputArity(); i++) {

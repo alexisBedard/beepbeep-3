@@ -19,6 +19,7 @@ package ca.uqac.lif.cep;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Queue;
 
 import ca.uqac.lif.cep.util.Strings;
@@ -86,31 +87,26 @@ public class Doubler extends SynchronousProcessor implements SMVInterface
   
 
 @Override
-public void writingSMV(FileWriter file, int Id, int list) throws IOException {
-	file.write("MODULE Doubler(inc_1, inb_1, ouc_1, oub_1) \n");
-	file.write("	ASSIGN \n");
-	file.write("		init(ouc_1) := case \n");
-	file.write("		inb_1 : inc_1 * 2; \n");
-	file.write("		TRUE : 0; \n");
-	file.write("	esac; \n");
-	file.write("\n");
-	file.write("	init(oub_1) := inb_1; \n");
-	file.write("\n");
-	file.write("	next(oub_1) := case \n");
-	file.write("		next(inb_1) : next(inb_1); \n");
-	file.write("		TRUE : FALSE; \n");
-	file.write("	esac; \n");
-	file.write("\n");
-	file.write("	next(ouc_1) := case \n");
-	file.write("		next(inb_1) : next(inc_1) * 2; \n");
-	file.write("		TRUE : 0; \n");
-	file.write("	esac; \n");
-	file.write("\n");
+public void writingSMV(PrintStream printStream, int Id, int list) throws IOException {
+	printStream.printf("MODULE Doubler(inc_1, inb_1, ouc_1, oub_1) \n");
+	printStream.printf("	ASSIGN \n");
+	printStream.printf("		init(ouc_1) := case \n");
+	printStream.printf("		inb_1 : inc_1 * 2; \n");
+	printStream.printf("		TRUE : 0; \n");
+	printStream.printf("	esac; \n");
+	printStream.printf("\n");
+	printStream.printf("	init(oub_1) := inb_1; \n");
+	printStream.printf("\n");
+	printStream.printf("	next(oub_1) := case \n");
+	printStream.printf("		next(inb_1) : next(inb_1); \n");
+	printStream.printf("		TRUE : FALSE; \n");
+	printStream.printf("	esac; \n");
+	printStream.printf("\n");
+	printStream.printf("	next(ouc_1) := case \n");
+	printStream.printf("		next(inb_1) : next(inc_1) * 2; \n");
+	printStream.printf("		TRUE : 0; \n");
+	printStream.printf("	esac; \n");
+	printStream.printf("\n");
 	//printStream = new printStream(fileWriter);	
 	}
-
-//@Override
-/*public void writingSMV(FileWriter file, int Id) throws IOException {
-	writingSMV(file, Id, 3);
-	}*/
 }

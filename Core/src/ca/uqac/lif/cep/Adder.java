@@ -19,6 +19,7 @@ package ca.uqac.lif.cep;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Queue;
 
 /**
@@ -86,308 +87,308 @@ public class Adder extends SynchronousProcessor implements SMVInterface
   
   //Interface smvWritable Implements
   @Override
-  public void writingSMV(FileWriter file, int Id, int list) throws IOException{
-	  file.write("MODULE Adder"+Id+"(inc_1, inb_1, inc_2, inb_2, ouc_1, oub_1) \n");
-	  file.write("	VAR \n");
+  public void writingSMV(PrintStream printStream, int Id, int list) throws IOException{
+	  printStream.printf("MODULE Adder"+Id+"(inc_1, inb_1, inc_2, inb_2, ouc_1, oub_1) \n");
+	  printStream.printf("	VAR \n");
 	  
 	  for(int i = 1; i <= 2; i++) {
-		  file.write("		qc_"+i+" : array 0.."+(list-1)+" of 0..3; \n");
-		  file.write("		qb_"+i+" : array 0.."+(list-1)+" of boolean; \n");
+		  printStream.printf("		qc_"+i+" : array 0.."+(list-1)+" of 0..3; \n");
+		  printStream.printf("		qb_"+i+" : array 0.."+(list-1)+" of boolean; \n");
 	  }
-	  file.write("\n");
-	  file.write("	ASSIGN \n");
+	  printStream.printf("\n");
+	  printStream.printf("	ASSIGN \n");
 
 	  for(int i = 1; i <= 2; i++) {
 		  for(int j = 0; j < list; j++) {
 			  if(j == 0) {
-				  file.write("		init(qc_"+i+"["+j+"]) := case \n");
+				  printStream.printf("		init(qc_"+i+"["+j+"]) := case \n");
 				  	if(i == 1) {
-				  		file.write("			inb_1 & !inb_2 : inc_"+i+"; \n");
+				  		printStream.printf("			inb_1 & !inb_2 : inc_"+i+"; \n");
 				  	}
 				  	if(i == 2) {
-				  		file.write("			!inb_1 & inb_2 : inc_"+i+"; \n");
+				  		printStream.printf("			!inb_1 & inb_2 : inc_"+i+"; \n");
 				  	}
-				  file.write("			TRUE : 0; \n");
-				  file.write("		esac; \n");
+				  printStream.printf("			TRUE : 0; \n");
+				  printStream.printf("		esac; \n");
 			  }
 			  else {
-				  file.write("		init(qc_"+i+"["+j+"]) := 0; \n");
+				  printStream.printf("		init(qc_"+i+"["+j+"]) := 0; \n");
 			  }
 		  }
-		  file.write("\n");
+		  printStream.printf("\n");
 	  }
 
 	  for(int i = 1; i <= 2; i++) {
 		  for(int j = 0; j < list; j++) {
 			  if(j == 0) {
-				  file.write("		init(qb_"+i+"["+j+"]) := case \n");
+				  printStream.printf("		init(qb_"+i+"["+j+"]) := case \n");
 				  	if(i == 1) {
-				  		file.write("			inb_1 & !inb_2 : TRUE; \n");
+				  		printStream.printf("			inb_1 & !inb_2 : TRUE; \n");
 				  	}
 				  	if(i == 2) {
-				  		file.write("			!inb_1 & inb_2 : TRUE; \n");
+				  		printStream.printf("			!inb_1 & inb_2 : TRUE; \n");
 				  	}
-				  file.write("			TRUE : FALSE; \n");
-				  file.write("		esac; \n");
+				  printStream.printf("			TRUE : FALSE; \n");
+				  printStream.printf("		esac; \n");
 			  }
 			  else {
-				  file.write("		init(qb_"+i+"["+j+"]) := FALSE; \n");
+				  printStream.printf("		init(qb_"+i+"["+j+"]) := FALSE; \n");
 			  }
 		  }
-		  file.write("\n");
+		  printStream.printf("\n");
 	  }
 
-	  file.write("		init(ouc_1) := case \n");
-	  file.write("			inb_1 & inb_2 : inc_1 + inc_2; \n");
-	  file.write("			TRUE : 0; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
-	  file.write("		init(oub_1) := case \n");
-	  file.write("			inb_1 & inb_2 : TRUE; \n");
-	  file.write("			TRUE : FALSE; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
+	  printStream.printf("		init(ouc_1) := case \n");
+	  printStream.printf("			inb_1 & inb_2 : inc_1 + inc_2; \n");
+	  printStream.printf("			TRUE : 0; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
+	  printStream.printf("		init(oub_1) := case \n");
+	  printStream.printf("			inb_1 & inb_2 : TRUE; \n");
+	  printStream.printf("			TRUE : FALSE; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
 	 
 	  //qb variables
 	  for(int i = 1; i <= 2; i++) {
 		  for(int j = 0; j < list; j++) {
-			  file.write("		next(qb_"+i+"["+j+"]) := case \n");
+			  printStream.printf("		next(qb_"+i+"["+j+"]) := case \n");
 			  if(j == 0) {
-				  file.write("			-- inb_"+i+" is the only intput and both waiting lists are empty. \n");
+				  printStream.printf("			-- inb_"+i+" is the only intput and both waiting lists are empty. \n");
 				  if(i == 1) {
-					  file.write("			next(inb_1) & next(!inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: TRUE; \n");
+					  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: TRUE; \n");
 				  }
 				  if(i == 2) {
-					  file.write("			next(!inb_1) & next(inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: TRUE; \n");
+					  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: TRUE; \n");
 				  }
 				  if(j+1 == list) {
 					  if(i == 1) {
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : TRUE; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : TRUE; \n");
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : TRUE; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : TRUE; \n");
 					  }
 				  }
 				  else {
 					  if(i == 1) {
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
 						 
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
 					  }
 				  }
 			  }
 			  if(j != 0) {
 				  if(j+1 == list) {
 					  if(i == 1) {
-						  file.write("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n");
-						  file.write("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : TRUE; \n");
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
-						  file.write("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: TRUE; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : TRUE; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
+						  printStream.printf("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: TRUE; \n");
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_2 and there is something in the waiting list at position"+ (i-1)+" \n");
-						  file.write("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+i+"] & qb_"+i+"["+(i-1)+"] : TRUE; \n");
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
-						  file.write("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: TRUE; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in the waiting list at position"+ (i-1)+" \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+i+"] & qb_"+i+"["+(i-1)+"] : TRUE; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : FALSE; \n");
+						  printStream.printf("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: TRUE; \n");
 					  }
 				  }
 				  else {
 					  if(i == 1) {
-						  file.write("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n ");
-						  file.write("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: TRUE; \n"); 
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n ");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: TRUE; \n"); 
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_2 and there is something in the waiting list at position "+ (j-1)+" \n ");
-						  file.write("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: TRUE; \n"); 
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			-- Only inb_2 and there is something in the waiting list at position "+ (j-1)+" \n ");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: TRUE; \n"); 
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: FALSE; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: TRUE;\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: TRUE;\n");
 					  }
 				  }
 			  }
 			  
 			  if(j+1 == list) {
 				  if(i == 1) {
-					  file.write("			--Waiting list is full.\n");
-					  file.write("			next(inb_1) & next(!inb_2) & qb_1["+j+"] & !qb_2[0]: TRUE;\n");
+					  printStream.printf("			--Waiting list is full.\n");
+					  printStream.printf("			next(inb_1) & next(!inb_2) & qb_1["+j+"] & !qb_2[0]: TRUE;\n");
 				  }
 				  if(i == 2) {
-					  file.write("			--Waiting list is full.\n");
-					  file.write("			next(!inb_1) & next(inb_2) & qb_2["+j+"] & !qb_1[0]: TRUE;\n");
+					  printStream.printf("			--Waiting list is full.\n");
+					  printStream.printf("			next(!inb_1) & next(inb_2) & qb_2["+j+"] & !qb_1[0]: TRUE;\n");
 				  }
 			  }
 			  
-			  file.write("			TRUE : qb_"+i+"["+j+"]; \n");
-			  file.write("		esac; \n");
-			  file.write("\n");
+			  printStream.printf("			TRUE : qb_"+i+"["+j+"]; \n");
+			  printStream.printf("		esac; \n");
+			  printStream.printf("\n");
 		  }
 	  }
 	  
 	//qc variables
 	  for(int i = 1; i <= 2; i++) {
 		  for(int j = 0; j < list; j++) {
-			  file.write("		next(qc_"+i+"["+j+"]) := case \n");
+			  printStream.printf("		next(qc_"+i+"["+j+"]) := case \n");
 			  if(j == 0) {
-				  file.write("			-- inb_"+i+" is the only intput and both waiting lists are empty. \n");
+				  printStream.printf("			-- inb_"+i+" is the only intput and both waiting lists are empty. \n");
 				  if(i == 1) {
-					  file.write("			next(inb_1) & next(!inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: next(inc_1); \n");
+					  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: next(inc_1); \n");
 				  }
 				  if(i == 2) {
-					  file.write("			next(!inb_1) & next(inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: next(inc_2); \n");
+					  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_1["+j+"] & !qb_2["+j+"]: next(inc_2); \n");
 				  }
 				  if(j+1 == list) {
 					  if(i == 1) {
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : 0; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : next(inc_1); \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : next(inc_1); \n");
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : 0; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : next(inc_2); \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : next(inc_2); \n");
 					  }
 				  }
 				  else {
 					  if(i == 1) {
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_1);\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_1);\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
 						 
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_2);\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_2);\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
 					  }
 				  }
 			  }
 			  if(j != 0) {
 				  if(j+1 == list) {
 					  if(i == 1) {
-						  file.write("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n");
-						  file.write("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : next(inc_1); \n");
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : 0; \n");
-						  file.write("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: next(inc_1); \n");
+						  printStream.printf("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : next(inc_1); \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: next(inc_1); \n");
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_2 and there is something in the waiting list at position"+ (i-1)+" \n");
-						  file.write("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : next(inc_2); \n");
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : 0; \n");
-						  file.write("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: next(inc_2); \n");
+						  printStream.printf("			-- Only inb_2 and there is something in the waiting list at position"+ (i-1)+" \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : next(inc_2); \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: next(inc_2); \n");
 					  }
 				  }
 				  else {
 					  if(i == 1) {
-						  file.write("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n ");
-						  file.write("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: next(inc_1); \n"); 
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
-						  file.write("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_1);\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
+						  printStream.printf("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n ");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: next(inc_1); \n"); 
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_1);\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
 					  }
 					  if(i == 2) {
-						  file.write("			-- Only inb_2 and there is something in the waiting list at position "+ (j-1)+" \n ");
-						  file.write("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: next(inc_2); \n"); 
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
-						  file.write("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_2);\n");
-						  file.write("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
-						  file.write("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
+						  printStream.printf("			-- Only inb_2 and there is something in the waiting list at position "+ (j-1)+" \n ");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: next(inc_2); \n"); 
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: next(inc_2);\n");
+						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
+						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"];\n");
 					  }
 				  }
 			  }
 			  
 			  if(j+1 == list) {
 				  if(i == 1) {
-					  file.write("			--Waiting list is full.\n");
-					  file.write("			next(inb_1) & next(!inb_2) & qb_1["+j+"] & !qb_2[0]: next(inc_1);\n");
+					  printStream.printf("			--Waiting list is full.\n");
+					  printStream.printf("			next(inb_1) & next(!inb_2) & qb_1["+j+"] & !qb_2[0]: next(inc_1);\n");
 				  }
 				  if(i == 2) {
-					  file.write("			--Waiting list is full.\n");
-					  file.write("			next(!inb_1) & next(inb_2) & qb_2["+j+"] & !qb_1[0]: next(inc_2);\n");
+					  printStream.printf("			--Waiting list is full.\n");
+					  printStream.printf("			next(!inb_1) & next(inb_2) & qb_2["+j+"] & !qb_1[0]: next(inc_2);\n");
 				  }
 			  }
 			  
-			  file.write("			TRUE : qc_"+i+"["+j+"]; \n");
-			  file.write("		esac; \n");
-			  file.write("\n");
+			  printStream.printf("			TRUE : qc_"+i+"["+j+"]; \n");
+			  printStream.printf("		esac; \n");
+			  printStream.printf("\n");
 		  }
 	  }
-	  file.write("		next(oub_1) := case \n");
-	  file.write("			next(inb_1) & qb_2[0] : TRUE; \n");
-	  file.write("			next(inb_2) & qb_1[0] : TRUE; \n");
-	  file.write("			next(inb_1) & next(inb_2) : TRUE; \n");
-	  file.write("			TRUE : FALSE; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
-	  file.write("		next(ouc_1) := case \n");
-	  file.write("			next(inb_1) & qb_2[0] : next(inc_1) + qc_2[0]; \n");
-	  file.write("			next(inb_2) & qb_1[0] : next(inc_2) + qc_1[0]; \n");
-	  file.write("			next(inb_1) & next(inb_2) : next(inc_1) + next(inc_2); \n");
-	  file.write("			TRUE : 0; \n");
-	  file.write("		esac; \n");
-	  file.write("\n");
+	  printStream.printf("		next(oub_1) := case \n");
+	  printStream.printf("			next(inb_1) & qb_2[0] : TRUE; \n");
+	  printStream.printf("			next(inb_2) & qb_1[0] : TRUE; \n");
+	  printStream.printf("			next(inb_1) & next(inb_2) : TRUE; \n");
+	  printStream.printf("			TRUE : FALSE; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
+	  printStream.printf("		next(ouc_1) := case \n");
+	  printStream.printf("			next(inb_1) & qb_2[0] : next(inc_1) + qc_2[0]; \n");
+	  printStream.printf("			next(inb_2) & qb_1[0] : next(inc_2) + qc_1[0]; \n");
+	  printStream.printf("			next(inb_1) & next(inb_2) : next(inc_1) + next(inc_2); \n");
+	  printStream.printf("			TRUE : 0; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("\n");
   }
 }

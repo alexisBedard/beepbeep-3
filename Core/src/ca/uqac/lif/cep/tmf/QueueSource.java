@@ -24,6 +24,7 @@ import ca.uqac.lif.petitpoucet.NodeFunction;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -335,33 +336,32 @@ public class QueueSource extends Source implements SMVInterface
   }
   
   @Override
-  public void writingSMV(FileWriter file, int Id, int list) throws IOException{
-	  	file.write("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
-		file.write("	VAR \n");
-		//file.write("		source : array 0.." + Integer.toString(this.getSize() -1) +" of ");
-		file.write("		value : ");
+  public void writingSMV(PrintStream printStream, int Id, int list) throws IOException{
+	  printStream.printf("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
+	  printStream.printf("	VAR \n");
+	  printStream.printf("		value : ");
 		if(this.getMinValue() > 0){
-					file.write("0.."+Integer.toString(this.getMaxValue())+ "; \n");
+					printStream.printf("0.."+Integer.toString(this.getMaxValue())+ "; \n");
 				}
 				else {
-					file.write(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
+					printStream.printf(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
 				}
-		file.write("\n");
-		file.write("	ASSIGN \n");
-		file.write("		init(value) := " + m_events.get(0)+"; \n");
-		file.write("		next(value) := case \n");
+		printStream.printf("\n");
+		printStream.printf("	ASSIGN \n");
+		printStream.printf("		init(value) := " + m_events.get(0)+"; \n");
+		printStream.printf("		next(value) := case \n");
 		for(int j = 0; j < this.getSize(); j++ ) {
 			if(j != this.getSize() -1) {
-				file.write("			value = " + m_events.get(j)+" : " + m_events.get(j+1) + "; \n");
+				printStream.printf("			value = " + m_events.get(j)+" : " + m_events.get(j+1) + "; \n");
 			}
 		}
-		file.write("			value = " + m_events.get(this.getSize() - 1)+" : " + m_events.get(0) + "; \n");
-		file.write("			TRUE : value; \n");
-		file.write("		esac; \n");
-		file.write("		init(ouc_1) := value; \n");
-		file.write("		init(oub_1) := TRUE; \n");
-		file.write("		next(ouc_1) := next(value); \n");
-		file.write("		next(oub_1) := TRUE; \n");
-		file.write("\n");
+		printStream.printf("			value = " + m_events.get(this.getSize() - 1)+" : " + m_events.get(0) + "; \n");
+		printStream.printf("			TRUE : value; \n");
+		printStream.printf("		esac; \n");
+		printStream.printf("		init(ouc_1) := value; \n");
+		printStream.printf("		init(oub_1) := TRUE; \n");
+		printStream.printf("		next(ouc_1) := next(value); \n");
+		printStream.printf("		next(oub_1) := TRUE; \n");
+		printStream.printf("\n");
   }
 }

@@ -1,8 +1,8 @@
 package ca.uqac.lif.cep;
 
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 
 public interface SMVInterface {
-	public void writingSMV(FileWriter file, int Id, int list) throws IOException;
+	public void writingSMV(PrintStream printStream, int Id, int list) throws IOException;
 }

@@ -30,6 +30,8 @@ public class SmvFileGeneration {
 	protected static ArrayList<Tuples<Processor, Integer, Processor, Integer>> m_ProcessorChain;
 	protected static ArrayList<String> m_Functions = new ArrayList<String>();
 	protected static ArrayList<Processor> processorsToGenerate = new ArrayList<Processor>();
+	protected static String pipeType = "";
+	protected static String tempPipeType = "";
 	
 	protected int arrayWidth = 0;
 	protected int arrayHeight = 0;
@@ -304,6 +306,7 @@ public class SmvFileGeneration {
 		case "QueueSource" :
 			printStream.printf("		--QueueSource \n");
 			QueueSource q = (QueueSource)m_ProcessorChain.get(id).m_PInput;
+			pipeType = q.getVariableType();
 			if( q.getVariableType().equals("Integer")) {
 				printStream.printf("		pipe_"+ProcId+" : ");
 				connectionArray[ProcId][0] = q.getMinValue();
@@ -349,11 +352,21 @@ public class SmvFileGeneration {
 			printStream.printf("		--CountDecimate \n");
 			//new Minimum value
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-			connectionArray[ProcId][0] = (connectionArray[prec1][0]);
-			//new Maximum value
-			connectionArray[ProcId][1] = (connectionArray[prec1][1]);
-			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+			if(pipeType.equals("Integer")) {
+				connectionArray[ProcId][0] = (connectionArray[prec1][0]);
+				//new Maximum value
+				connectionArray[ProcId][1] = (connectionArray[prec1][1]);
+				printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+			}
+			if(pipeType.equals("Boolean")) {
+				//new Minimum value
+				connectionArray[ProcId][0] = 0;
+				//new Maximum value
+				connectionArray[ProcId][1] = 1;
+				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
+				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+			}
 			
 			if(isMultipleOutput(prec1)) {
 				int outputPosition = 0;
@@ -412,6 +425,7 @@ public class SmvFileGeneration {
 			break;
 		case "Fork":
 			Fork f = (Fork)m_ProcessorChain.get(id).m_PInput;
+			f.setPipeType(pipeType);
 			//check if all output's input are generated
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
 			//new Minimum value
@@ -457,8 +471,18 @@ public class SmvFileGeneration {
 				connectionArray[ProcId][0] = 0;
 				//new Maximum value
 				connectionArray[ProcId][1] = 1;
-				m_Functions.add("not : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				m_Functions.add("not"+ProcId+" : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 				break;
+			case "Or" : 
+				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
+				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+				//new Minimum value
+				connectionArray[ProcId][0] = 0;
+				//new Maximum value
+				connectionArray[ProcId][1] = 1;
+				m_Functions.add("or"+ProcId+" : Or(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 		}
 			break;
 		default:
@@ -484,36 +508,42 @@ public class SmvFileGeneration {
 			switch(processorShortName) {
 			case "QueueSource":
 				QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
-				queueSource.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				queueSource.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
 				break;
 				
 			case "Doubler":
 				Doubler doubler = (Doubler)processorsToGenerate.get(i);
-				doubler.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				doubler.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
 				break;
 				
 			case "CountDecimate":
 				 CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
-				countDecimate.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				countDecimate.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
 				break;
 				
 			case "Adder":
 				Adder add = (Adder)processorsToGenerate.get(i);
-				add.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity);
+				add.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity, pipeType);
 				break;
 				
 			case "Fork":
 				Fork fork = (Fork)processorsToGenerate.get(i);
-				fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, fork.getPipeType());
 				break;
 				
 			case "ApplyFunction":
 				String functionName = processorsToGenerate.get(i).toString();
 				switch(functionName) {
 				case "Not" :
-					ApplyFunction function = new ApplyFunction(Booleans.not);
-					function.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+					ApplyFunction not = new ApplyFunction(Booleans.not);
+					not.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
 					break;
+				case "Or" :
+					ApplyFunction or = new ApplyFunction(Booleans.or);
+					or.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, 0, 0, pipeType);
+					break;
+				default:
+					System.out.println(processorsToGenerate.get(i).toString() + ": This function is not supported at the moment");
 			}
 				break;
 			default:

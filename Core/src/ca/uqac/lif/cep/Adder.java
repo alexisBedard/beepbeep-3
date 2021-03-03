@@ -87,7 +87,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
   
   //Interface smvWritable Implements
   @Override
-  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException{
+  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException{
 	  printStream.printf("MODULE Adder"+Id+"(inc_1, inb_1, inc_2, inb_2, ouc_1, oub_1) \n");
 	  printStream.printf("	VAR \n");
 	  

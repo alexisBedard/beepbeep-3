@@ -40,6 +40,9 @@ import java.util.Queue;
 @SuppressWarnings("squid:S2160")
 public class Fork extends UniformProcessor implements SMVInterface
 {
+
+  private String pipeType = "";
+	
   public Fork(int out_arity)
   {
     super(1, out_arity);
@@ -113,9 +116,17 @@ public class Fork extends UniformProcessor implements SMVInterface
   {
     return new Fork(((Number) o).intValue());
   }
+  
+  public void setPipeType( String s) {
+	pipeType = s;
+  }
+  
+  public String getPipeType() {
+	  return pipeType;
+  }
 
   @Override
-  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException {
+  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException {
 	  printStream.printf("MODULE Fork"+Id+" (inc_1, inb_1, ");
 	  for(int i = 1; i <= getOutputArity(); i++) {
 		  if(i != getOutputArity()) {

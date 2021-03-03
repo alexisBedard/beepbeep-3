@@ -342,7 +342,7 @@ public class QueueSource extends Source implements SMVInterface
   }
   
   @Override
-  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException{
+  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException{
 	  printStream.printf("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
 	  printStream.printf("	VAR \n");
 	  printStream.printf("		cnt : 0.."+(this.getSize() - 1) +"; \n");

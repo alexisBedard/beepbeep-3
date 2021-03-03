@@ -246,7 +246,8 @@ public class Booleans
     @Override
     public String toString()
     {
-      return "∨";
+      //return "∨";
+    	return "Or";
     }
   }
 

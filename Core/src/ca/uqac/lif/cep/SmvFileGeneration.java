@@ -463,6 +463,7 @@ public class SmvFileGeneration {
 			String functionName = processorsToGenerate.get(ProcId).toString();
 			switch(functionName) {
 			case "¬" :
+				printStream.printf("		--Not \n");
 				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
 				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
 				
@@ -474,6 +475,7 @@ public class SmvFileGeneration {
 				m_Functions.add("not"+ProcId+" : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 				break;
 			case "∨" : 
+				printStream.printf("		--Or \n");
 				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
 				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
 				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
@@ -483,7 +485,20 @@ public class SmvFileGeneration {
 				//new Maximum value
 				connectionArray[ProcId][1] = 1;
 				m_Functions.add("or"+ProcId+" : Or(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-		}
+				break;
+			case "∧":
+				printStream.printf("		--And \n");
+				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
+				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+				//new Minimum value
+				connectionArray[ProcId][0] = 0;
+				//new Maximum value
+				connectionArray[ProcId][1] = 1;
+				m_Functions.add("and"+ProcId+" : And(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				break;
+			}
 			break;
 		default:
 			break;
@@ -541,6 +556,10 @@ public class SmvFileGeneration {
 				case "∨"  :
 					ApplyFunction or = new ApplyFunction(Booleans.or);
 					or.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, 0, 0, pipeType);
+					break;
+				case "∧":
+					ApplyFunction and = new ApplyFunction(Booleans.and);
+					and.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, 0, 0, pipeType);
 					break;
 				default:
 					System.out.println(processorsToGenerate.get(i).toString() + ": This function is not supported at the moment");

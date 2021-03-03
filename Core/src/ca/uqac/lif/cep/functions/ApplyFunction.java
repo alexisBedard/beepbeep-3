@@ -233,7 +233,7 @@ public class ApplyFunction extends UniformProcessor implements SMVInterface
 public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException {
 	String s = m_function.toString();
 	switch(s) {
-	case "Not" :
+	case "¬" :
 		printStream.printf("MODULE Not(inc_1, inb_1,ouc_1, oub_1) \n");
 		printStream.printf("	ASSIGN \n");
 		printStream.printf("		init(ouc_1) := case \n");
@@ -251,7 +251,7 @@ public void writingSMV(PrintStream printStream, int Id, int list, int[][] array,
 		printStream.printf("\n");
 		printStream.printf("\n");
 		break;
-	case "Or" : 
+	case "∨"  : 
 		printStream.printf("MODULE Or(inc_1, inb_1, inc_2, inb_2, ouc_1, oub_1) \n");
 		printStream.printf("	VAR \n");
 		printStream.printf("		qc_1 : array 0.."+(list-1)+" of boolean; \n");

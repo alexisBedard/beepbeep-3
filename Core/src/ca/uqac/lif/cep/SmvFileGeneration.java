@@ -462,7 +462,7 @@ public class SmvFileGeneration {
 		case "ApplyFunction":
 			String functionName = processorsToGenerate.get(ProcId).toString();
 			switch(functionName) {
-			case "Not" :
+			case "¬" :
 				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
 				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
 				
@@ -473,7 +473,7 @@ public class SmvFileGeneration {
 				connectionArray[ProcId][1] = 1;
 				m_Functions.add("not"+ProcId+" : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 				break;
-			case "Or" : 
+			case "∨" : 
 				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
 				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
 				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
@@ -534,11 +534,11 @@ public class SmvFileGeneration {
 			case "ApplyFunction":
 				String functionName = processorsToGenerate.get(i).toString();
 				switch(functionName) {
-				case "Not" :
+				case "¬" :
 					ApplyFunction not = new ApplyFunction(Booleans.not);
 					not.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
 					break;
-				case "Or" :
+				case "∨"  :
 					ApplyFunction or = new ApplyFunction(Booleans.or);
 					or.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, 0, 0, pipeType);
 					break;

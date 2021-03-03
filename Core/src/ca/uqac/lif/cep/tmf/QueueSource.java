@@ -310,7 +310,14 @@ public class QueueSource extends Source implements SMVInterface
 	  return m_events.size();
   }
   
-  //Get the minimum value ONLY IF QUEUESOURCE CONTAINS INTEGERS
+  public String getVariableType() {
+	  if(this.m_events.get(0).getClass().getSimpleName().equals("Boolean")) {
+		  return "Boolean";
+	  }
+	  else {
+		  return "Integer";
+	  }
+  }
   public int getMinValue() {
 	  for(int i = 0; i < m_events.size(); i++) {
 		  if((Integer)m_events.get(i) < m_minValue) {
@@ -320,7 +327,6 @@ public class QueueSource extends Source implements SMVInterface
 	  return m_minValue;
   }
   
-//Get the maximum value ONLY IF QUEUESOURCE CONTAINS INTEGERS
   public int getMaxValue() {
 	  for(int i = 0; i < m_events.size(); i++) {
 		  if((Integer)m_events.get(i) > m_maxValue) {
@@ -336,32 +342,52 @@ public class QueueSource extends Source implements SMVInterface
   }
   
   @Override
-  public void writingSMV(PrintStream printStream, int Id, int list) throws IOException{
+  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException{
 	  printStream.printf("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
 	  printStream.printf("	VAR \n");
-	  printStream.printf("		value : ");
-		if(this.getMinValue() > 0){
-					printStream.printf("0.."+Integer.toString(this.getMaxValue())+ "; \n");
-				}
-				else {
-					printStream.printf(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
-				}
-		printStream.printf("\n");
-		printStream.printf("	ASSIGN \n");
-		printStream.printf("		init(value) := " + m_events.get(0)+"; \n");
-		printStream.printf("		next(value) := case \n");
-		for(int j = 0; j < this.getSize(); j++ ) {
-			if(j != this.getSize() -1) {
-				printStream.printf("			value = " + m_events.get(j)+" : " + m_events.get(j+1) + "; \n");
-			}
-		}
-		printStream.printf("			value = " + m_events.get(this.getSize() - 1)+" : " + m_events.get(0) + "; \n");
-		printStream.printf("			TRUE : value; \n");
-		printStream.printf("		esac; \n");
-		printStream.printf("		init(ouc_1) := value; \n");
-		printStream.printf("		init(oub_1) := TRUE; \n");
-		printStream.printf("		next(ouc_1) := next(value); \n");
-		printStream.printf("		next(oub_1) := TRUE; \n");
-		printStream.printf("\n");
+	  printStream.printf("		cnt : 0.."+(this.getSize() - 1) +"; \n");
+	  if(this.getVariableType().equals("Integer")) {
+		  printStream.printf("		value : ");
+		  printStream.printf(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
+		  printStream.printf("\n");
+		  printStream.printf("	ASSIGN \n");
+		  printStream.printf("		init(value) := " + m_events.get(0)+"; \n");
+		  printStream.printf("		next(value) := case \n");
+			  
+		  for(int j = 0; j < this.getSize(); j++ ) {
+			  if(j != this.getSize() -1) {
+				 printStream.printf("			cnt = "+j+" : " + m_events.get(j+1) + "; \n");
+			  }
+		  }
+			  
+		  printStream.printf("			value = " + m_events.get(this.getSize() - 1)+" : " + m_events.get(0) + "; \n");
+	  }
+	  
+	  if(this.getVariableType().equals("Boolean")) {
+		  printStream.printf("		value : boolean;");
+		  printStream.printf("\n");
+		  printStream.printf("	ASSIGN \n");
+		  printStream.printf("		init(value) := " + toUpperCase(m_events.get(0))+"; \n");
+		  printStream.printf("		next(value) := case \n");
+		  
+		  for(int j = 0; j < this.getSize(); j++ ) {
+				 printStream.printf("			next(cnt) = "+ j+" : " + toUpperCase(m_events.get(j)) + "; \n");
+		  }
+		  printStream.printf("			TRUE : value; \n");
+		  printStream.printf("		esac; \n");
+		  
+		  printStream.printf("		init(cnt) := 0; \n");
+		  printStream.printf("		next(cnt) := (cnt + 1) mod "+this.getSize()+ ";\n");
+	  }
+	  printStream.printf("		init(ouc_1) := value; \n");
+	  printStream.printf("		init(oub_1) := TRUE; \n");
+	  printStream.printf("		next(ouc_1) := next(value); \n");
+	  printStream.printf("		next(oub_1) := TRUE; \n");
+	  printStream.printf("\n");
+  }
+
+  private String toUpperCase(Object object) {
+	String s = object.toString();
+	return s.toUpperCase();
   }
 }

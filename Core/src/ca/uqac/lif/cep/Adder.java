@@ -87,14 +87,16 @@ public class Adder extends SynchronousProcessor implements SMVInterface
   
   //Interface smvWritable Implements
   @Override
-  public void writingSMV(PrintStream printStream, int Id, int list) throws IOException{
+  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException{
 	  printStream.printf("MODULE Adder"+Id+"(inc_1, inb_1, inc_2, inb_2, ouc_1, oub_1) \n");
 	  printStream.printf("	VAR \n");
 	  
-	  for(int i = 1; i <= 2; i++) {
-		  printStream.printf("		qc_"+i+" : array 0.."+(list-1)+" of 0..3; \n");
-		  printStream.printf("		qb_"+i+" : array 0.."+(list-1)+" of boolean; \n");
-	  }
+	  int prec1 = array[Id][arrayWidth - maxInputArity];
+	  int prec2 = array[Id][arrayWidth - maxInputArity + 1];
+	  printStream.printf("		qc_1 : array 0.."+(list-1)+" of "+array[prec1][0]+".."+array[prec1][1]+"; \n");
+	  printStream.printf("		qb_1 : array 0.."+(list-1)+" of boolean; \n");
+	  printStream.printf("		qc_2 : array 0.."+(list-1)+" of "+array[prec2][0]+".."+array[prec2][1]+"; \n");		  
+	  printStream.printf("		qb_2 : array 0.."+(list-1)+" of boolean; \n");
 	  printStream.printf("\n");
 	  printStream.printf("	ASSIGN \n");
 
@@ -108,11 +110,21 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 				  	if(i == 2) {
 				  		printStream.printf("			!inb_1 & inb_2 : inc_"+i+"; \n");
 				  	}
-				  printStream.printf("			TRUE : 0; \n");
+				  	if(i == 1) {
+				  		printStream.printf("		TRUE : "+array[prec1][0]+"; \n");
+				  	}
+				  	else {
+				  		printStream.printf("		TRUE : "+array[prec2][0]+"; \n");
+				  	}
 				  printStream.printf("		esac; \n");
 			  }
 			  else {
-				  printStream.printf("		init(qc_"+i+"["+j+"]) := 0; \n");
+				  if( i == 1) {
+					  printStream.printf("		init(qc_"+i+"["+j+"]) := "+array[prec1][0]+"; \n");
+				  }
+				  else {
+					  printStream.printf("		init(qc_"+i+"["+j+"]) := "+array[prec2][0]+"; \n");
+				  }
 			  }
 		  }
 		  printStream.printf("\n");
@@ -140,7 +152,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 
 	  printStream.printf("		init(ouc_1) := case \n");
 	  printStream.printf("			inb_1 & inb_2 : inc_1 + inc_2; \n");
-	  printStream.printf("			TRUE : 0; \n");
+	  printStream.printf("		TRUE : "+array[Id][0]+"; \n");
 	  printStream.printf("		esac; \n");
 	  printStream.printf("\n");
 	  printStream.printf("		init(oub_1) := case \n");
@@ -278,13 +290,13 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 				  if(j+1 == list) {
 					  if(i == 1) {
 						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"]\n");
-						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : "+array[prec1][0]+"; \n");
 						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
 						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : next(inc_1); \n");
 					  }
 					  if(i == 2) {
 						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"]\n");
-						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : "+array[prec2][0]+"; \n");
 						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"]\n");
 						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+j+"] : next(inc_2); \n");
 					  }
@@ -292,7 +304,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 				  else {
 					  if(i == 1) {
 						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: "+array[prec1][0]+"; \n");
 						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
 						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
 						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
@@ -303,7 +315,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 					  }
 					  if(i == 2) {
 						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: "+array[prec2][0]+"; \n");
 						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
 						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
 						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
@@ -319,7 +331,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 						  printStream.printf("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n");
 						  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : next(inc_1); \n");
 						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"] \n");
-						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] : "+array[prec1][0]+"; \n");
 						  printStream.printf("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
 						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: next(inc_1); \n");
 					  }
@@ -327,7 +339,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 						  printStream.printf("			-- Only inb_2 and there is something in the waiting list at position"+ (i-1)+" \n");
 						  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"] : next(inc_2); \n");
 						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"] \n");
-						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : 0; \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] : "+array[prec2][0]+"; \n");
 						  printStream.printf("			-- Both inputs and there is something in qb_"+i+"["+(j-1)+"], something in qb_"+i+"["+j+"] \n");
 						  printStream.printf("			next(inb_1) & next(inb_2) & qb_"+i+"["+(j-1)+"] & qb_"+i+"["+j+"]: next(inc_2); \n");
 					  }
@@ -337,7 +349,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 						  printStream.printf("			-- Only inb_1 and there is something in the waiting list at position "+ (j-1)+" \n ");
 						  printStream.printf("			next(inb_1) & next(!inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: next(inc_1); \n"); 
 						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: "+array[prec1][0]+"; \n");
 						  printStream.printf("			-- Only inb_2 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
 						  printStream.printf("			next(!inb_1) & next(inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
 						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
@@ -349,7 +361,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 						  printStream.printf("			-- Only inb_2 and there is something in the waiting list at position "+ (j-1)+" \n ");
 						  printStream.printf("			next(!inb_1) & next(inb_2) & !qb_"+i+"["+j+"] & qb_"+i+"["+(j-1)+"]: next(inc_2); \n"); 
 						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"] \n");
-						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: 0; \n");
+						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & !qb_"+i+"["+(j+1)+"]: "+array[prec2][0]+"; \n");
 						  printStream.printf("			-- Only inb_1 and there is something in qb_"+i+"["+j+"], something in qb_"+i+"["+(j+1)+"]\n");
 						  printStream.printf("			next(inb_1) & next(!inb_2) & qb_"+i+"["+j+"] & qb_"+i+"["+(j+1)+"]: qc_"+i+"["+(j+1)+"]; \n");
 						  printStream.printf("			--Both inputs and there is something in qb_"+i+"["+j+"], nothing in qb_"+i+"["+(j+1)+"]\n");
@@ -387,7 +399,7 @@ public class Adder extends SynchronousProcessor implements SMVInterface
 	  printStream.printf("			next(inb_1) & qb_2[0] : next(inc_1) + qc_2[0]; \n");
 	  printStream.printf("			next(inb_2) & qb_1[0] : next(inc_2) + qc_1[0]; \n");
 	  printStream.printf("			next(inb_1) & next(inb_2) : next(inc_1) + next(inc_2); \n");
-	  printStream.printf("			TRUE : 0; \n");
+	  printStream.printf("		TRUE : "+array[Id][0]+"; \n");
 	  printStream.printf("		esac; \n");
 	  printStream.printf("\n");
   }

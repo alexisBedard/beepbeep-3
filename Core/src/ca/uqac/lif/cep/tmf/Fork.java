@@ -115,25 +115,25 @@ public class Fork extends UniformProcessor implements SMVInterface
   }
 
   @Override
-  public void writingSMV(PrintStream printStream, int Id, int list) throws IOException {
-	  printStream.printf("MODULE Fork (");
+  public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException {
+	  printStream.printf("MODULE Fork"+Id+" (inc_1, inb_1, ");
 	  for(int i = 1; i <= getOutputArity(); i++) {
 		  if(i != getOutputArity()) {
-			  printStream.printf("inc_"+i+", inb_"+i+" ,");
+			  printStream.printf("ouc_"+i+", oub_"+i+" ,");
 		  }
 		  else {
-			  printStream.printf("inc_"+i+", inb_"+i+"); \n");
+			  printStream.printf("ouc_"+i+", oub_"+i+") \n");
 		  }
 	  }
 	  printStream.printf("	ASSIGN \n");
 	  for(int i = 1; i <= getOutputArity(); i++) {
-		  printStream.printf("		init(ouc_"+i+") := inc_"+i+"; \n");
-		  printStream.printf("		init(oub_"+i+") := inb_"+i+"; \n");
+		  printStream.printf("		init(ouc_"+i+") := inc_1; \n");
+		  printStream.printf("		init(oub_"+i+") := inb_1; \n");
 	  }
 	  printStream.printf(" \n");
 	  for(int i = 1; i <= getOutputArity(); i++) {
-		  printStream.printf("		next(ouc_"+i+") := next(inc_"+i+"); \n");
-		  printStream.printf("		next(oub_"+i+") := next(inb_"+i+"); \n");
+		  printStream.printf("		next(ouc_"+i+") := next(inc_1); \n");
+		  printStream.printf("		next(oub_"+i+") := next(inb_1); \n");
 	  }
 	  printStream.printf(" \n");
 	}

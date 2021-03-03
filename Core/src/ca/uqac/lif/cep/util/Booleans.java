@@ -19,8 +19,12 @@ package ca.uqac.lif.cep.util;
 
 import ca.uqac.lif.cep.Context;
 import ca.uqac.lif.cep.EventTracker;
+import ca.uqac.lif.cep.SMVInterface;
 import ca.uqac.lif.cep.functions.BinaryFunction;
 import ca.uqac.lif.cep.functions.UnaryFunction;
+
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Collection;
 
 /**
@@ -255,8 +259,9 @@ public class Booleans
   {
     public static final transient Not instance = new Not();
 
-    private Not()
+    public Not()
     {
+    	
       super(Boolean.class, Boolean.class);
     }
 
@@ -269,7 +274,7 @@ public class Booleans
     @Override
     public String toString()
     {
-      return "¬";
+      return "Not";
     }
   }
   

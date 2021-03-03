@@ -20,9 +20,13 @@ package ca.uqac.lif.cep.functions;
 import ca.uqac.lif.cep.EventTracker;
 import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.cep.ProcessorException;
+import ca.uqac.lif.cep.SMVInterface;
 import ca.uqac.lif.cep.UniformProcessor;
 import ca.uqac.lif.petitpoucet.NodeFunction;
 import ca.uqac.lif.petitpoucet.ProvenanceNode;
+
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Set;
 
 /**
@@ -38,7 +42,7 @@ import java.util.Set;
  * @since 0.2.1
  */
 @SuppressWarnings("squid:S2160")
-public class ApplyFunction extends UniformProcessor
+public class ApplyFunction extends UniformProcessor implements SMVInterface
 {
   /**
    * The object responsible for the computation
@@ -224,4 +228,31 @@ public class ApplyFunction extends UniformProcessor
       return new ShiftTracker();
     }
   }
+
+@Override
+public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException {
+	String s = m_function.toString();
+	switch(s) {
+	case "Not" :
+		printStream.printf("MODULE Not(inc_1, inb_1,ouc_1, oub_1) \n");
+		printStream.printf("	ASSIGN \n");
+		printStream.printf("		init(ouc_1) := case \n");
+		printStream.printf("			inb_1 : !inc_1; \n");
+		printStream.printf("			TRUE : FALSE; \n");
+		printStream.printf("		esac; \n");
+		printStream.printf("\n");
+		printStream.printf("		next(ouc_1) := case \n");
+		printStream.printf("			next(inb_1) : next(!inc_1); \n");
+		printStream.printf("			TRUE : FALSE; \n");
+		printStream.printf("		esac; \n");
+		printStream.printf("\n");
+		printStream.printf("		init(oub_1) := inb_1; \n");
+		printStream.printf("		next(oub_1) := next(inb_1); \n");
+		printStream.printf("\n");
+		printStream.printf("\n");
+		break;
+	default:
+		break;
+	}
+	}
 }

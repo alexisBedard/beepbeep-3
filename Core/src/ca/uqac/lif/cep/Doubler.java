@@ -87,12 +87,12 @@ public class Doubler extends SynchronousProcessor implements SMVInterface
   
 
 @Override
-public void writingSMV(PrintStream printStream, int Id, int list) throws IOException {
+public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity) throws IOException {
 	printStream.printf("MODULE Doubler(inc_1, inb_1, ouc_1, oub_1) \n");
 	printStream.printf("	ASSIGN \n");
 	printStream.printf("		init(ouc_1) := case \n");
 	printStream.printf("		inb_1 : inc_1 * 2; \n");
-	printStream.printf("		TRUE : 0; \n");
+	printStream.printf("		TRUE : "+array[Id][0]+"; \n");
 	printStream.printf("	esac; \n");
 	printStream.printf("\n");
 	printStream.printf("	init(oub_1) := inb_1; \n");
@@ -104,9 +104,8 @@ public void writingSMV(PrintStream printStream, int Id, int list) throws IOExcep
 	printStream.printf("\n");
 	printStream.printf("	next(ouc_1) := case \n");
 	printStream.printf("		next(inb_1) : next(inc_1) * 2; \n");
-	printStream.printf("		TRUE : 0; \n");
+	printStream.printf("		TRUE : "+array[Id][1]+"; \n");
 	printStream.printf("	esac; \n");
 	printStream.printf("\n");
-	//printStream = new printStream(fileWriter);	
 	}
 }

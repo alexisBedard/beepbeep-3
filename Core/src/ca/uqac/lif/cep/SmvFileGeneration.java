@@ -10,9 +10,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import ca.uqac.lif.cep.PipeConnection.Tuples;
+import ca.uqac.lif.cep.functions.ApplyFunction;
 import ca.uqac.lif.cep.tmf.CountDecimate;
 import ca.uqac.lif.cep.tmf.Fork;
 import ca.uqac.lif.cep.tmf.QueueSource;
+import ca.uqac.lif.cep.util.Booleans;
+import ca.uqac.lif.cep.util.Booleans.Not;
 
 public class SmvFileGeneration {
 	protected FileWriter smvFileWriter;
@@ -29,6 +32,9 @@ public class SmvFileGeneration {
 	protected static ArrayList<Processor> processorsToGenerate = new ArrayList<Processor>();
 	
 	protected int arrayWidth = 0;
+	protected int arrayHeight = 0;
+	protected int[][] connectionArray = new int[arrayHeight][arrayWidth];
+	
 	protected int maxOutputArrity = 0;
 	protected int maxInputArrity = 0;
 	
@@ -44,7 +50,10 @@ public class SmvFileGeneration {
 		fillModuleList();
 		generateModules(m_ProcessorChain);
 		generateMain();	
+		writingModules(connectionArray);
 		
+		//Closing the file
+		printStream.close();
 	}
 
 	public void generateSMV(Processor p, String filename) throws IOException{
@@ -89,8 +98,8 @@ public class SmvFileGeneration {
 					
 					if(inputToBeGenerated) {
 						for(int k = 0; k < processorsToGenerate.size(); k++) {
-							if(processorInputTemp.getShortName().equals(processorsToGenerate.get(k).getShortName())) {
-								inputToBeGenerated = checkDuplication(processorInputTemp.getShortName());
+							if(processorInputTemp.getClass().getSimpleName().equals(processorsToGenerate.get(k).getClass().getSimpleName())) {
+								inputToBeGenerated = checkDuplication(processorInputTemp.getClass().getSimpleName());
 							}
 						}
 						if(inputToBeGenerated) {
@@ -99,8 +108,8 @@ public class SmvFileGeneration {
 					}
 					if(outputToBeGenerated) {
 						for(int k = 0; k < processorsToGenerate.size(); k++) {
-							if(processorOutputTemp.getShortName().equals(processorsToGenerate.get(k).getShortName())) {
-								outputToBeGenerated = checkDuplication(processorOutputTemp.getShortName());
+							if(processorOutputTemp.getClass().getSimpleName().equals(processorsToGenerate.get(k).getClass().getSimpleName())) {
+								outputToBeGenerated = checkDuplication(processorOutputTemp.getClass().getSimpleName());
 							}
 						}
 						if(outputToBeGenerated) {
@@ -112,41 +121,18 @@ public class SmvFileGeneration {
 			
 			//Now that we have all the modules to generates, let's generate them.
 			for(int i = 0; i < processorsToGenerate.size(); i++) {
-				String processorShortName = processorsToGenerate.get(i).getShortName();
+				String processorShortName = processorsToGenerate.get(i).getClass().getSimpleName();
 				
 				switch(processorShortName) {
 				case "QueueSource":
-					QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
-					queueSource.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
 					m_SourceID.add(processorsToGenerate.get(i).getId());
 					break;
-					
-				case "Doubler":
-					Doubler doubler = (Doubler)processorsToGenerate.get(i);
-					doubler.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
-					break;
-					
-				case "CountDecimate":
-					 CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
-					countDecimate.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
-					break;
-					
-				case "Adder":
-					Adder add = (Adder)processorsToGenerate.get(i);
-					add.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList);
-					break;
-					
-				case "Fork":
-					Fork fork = (Fork)processorsToGenerate.get(i);
-					fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0);
-					break;
-					
+
 				default:
-					System.out.println(processorsToGenerate.get(i).getShortName()+": This module is not supported at the moment");
 					break;
 				}
 			}
-	}
+		}
 	
 	/**
 	 * This is the list of all the modules that needs to be generated more than once if needed.
@@ -172,7 +158,7 @@ public class SmvFileGeneration {
 		ArrayList<Integer> modulesID = new ArrayList<Integer>();
 		String s;
 		
-		int arrayHeight = 0;
+		arrayHeight = 0;
 		boolean inputIsPresent = false;
 		boolean outputIsPresent = false;
 		//Construction of an array that will help find the pipes values
@@ -214,7 +200,7 @@ public class SmvFileGeneration {
 		//The array will store pipe values and all the connections between the processors.
 		int numArrity = (maxOutputArrity -1)+(maxInputArrity-1);
 		 arrayWidth = 4 + numArrity;
-		int[][] connectionArray = new int[arrayHeight][arrayWidth];
+		connectionArray = new int[arrayHeight][arrayWidth];
 		for(int i = 0; i < arrayHeight; i++) {
 			for(int j = 2; j < arrayWidth; j++) {
 				connectionArray[i][j] = -1;
@@ -248,7 +234,7 @@ public class SmvFileGeneration {
 						int cell = (arrayWidth - maxInputArrity) + m_ProcessorChain.get(id+output).m_arityOut;
 						if(connectionArray[m_ProcessorChain.get(id+output).m_POutput.getId()][cell] == -1) {
 							//Storing and writing the values of m_PInput
-							s = m_ProcessorChain.get(id+output).m_PInput.getShortName();
+							s = m_ProcessorChain.get(id+output).m_PInput.getClass().getSimpleName();
 							generateValues(connectionArray, s, id+output, m_ProcessorChain.get(id+output).m_PInput.getId());
 						}
 						
@@ -277,7 +263,7 @@ public class SmvFileGeneration {
 							
 							if(m_ProcessorChain.get(id).m_POutput.getPushableOutput(0) == null) {
 								//Storing and writing the values of m_POutput
-								s = m_ProcessorChain.get(id).m_POutput.getShortName();
+								s = m_ProcessorChain.get(id).m_POutput.getClass().getSimpleName();
 								printStream.printf("		--OUTPUT \n");
 								generateValues(connectionArray, s, id, m_ProcessorChain.get(id).m_POutput.getId());
 								//This is the last processor
@@ -307,9 +293,7 @@ public class SmvFileGeneration {
 		for(int i = 0 ; i < m_Functions.size(); i++) {
 			printStream.printf("		"+ m_Functions.get(i));
 		}
-		
-		//Closing the file
-		printStream.close();
+		printStream.printf("\n");
 	}
 
 	private void generateValues(int[][] connectionArray, String s, int id, int ProcId) throws IOException {
@@ -320,17 +304,21 @@ public class SmvFileGeneration {
 		case "QueueSource" :
 			printStream.printf("		--QueueSource \n");
 			QueueSource q = (QueueSource)m_ProcessorChain.get(id).m_PInput;
-			printStream.printf("		pipe_"+ProcId+" : ");
-			if(q.getMinValue() >= 0) {
-				connectionArray[ProcId][0] = 0;
-			}
-			else {
+			if( q.getVariableType().equals("Integer")) {
+				printStream.printf("		pipe_"+ProcId+" : ");
 				connectionArray[ProcId][0] = q.getMinValue();
+				connectionArray[ProcId][1] = q.getMaxValue();
+				printStream.printf(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
+				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+				m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 			}
-			connectionArray[ProcId][1] = q.getMaxValue();
-			printStream.printf(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
-			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-			m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+			if( q.getVariableType().equals("Boolean")) {
+				connectionArray[ProcId][0] = 0;
+				connectionArray[ProcId][1] = 1;
+				printStream.printf("		pipe_"+ProcId+" : boolean; \n");
+				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+				m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+			}
 			break;
 		case "Doubler":
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
@@ -442,6 +430,8 @@ public class SmvFileGeneration {
 				for(int i = 0; i < f.getOutputArity(); i++) {
 					printStream.printf("		pipe_"+ProcId+"_"+i+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
 					printStream.printf("		b_pipe_"+ProcId+ "_"+i+" : boolean; \n");
+					
+					
 				}
 				 string = "fork"+ProcId+" : Fork"+ProcId+ "(pipe_"+prec1+", b_pipe_"+prec1+", ";
 				for(int i = 0; i < f.getOutputArity(); i++) {
@@ -455,7 +445,22 @@ public class SmvFileGeneration {
 				m_Functions.add(string);
 			}
 			break;
-			
+		case "ApplyFunction":
+			String functionName = processorsToGenerate.get(ProcId).toString();
+			switch(functionName) {
+			case "Not" :
+				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
+				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
+				
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				//new Minimum value
+				connectionArray[ProcId][0] = 0;
+				//new Maximum value
+				connectionArray[ProcId][1] = 1;
+				m_Functions.add("not : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				break;
+		}
+			break;
 		default:
 			break;
 		}
@@ -465,10 +470,57 @@ public class SmvFileGeneration {
 	//This fonction cheks if a processor is preceded by a processor with multiple outputs.
 	//Right now, only Fork is supported.
 	private boolean isMultipleOutput(int id) {
-		if(processorsToGenerate.get(id).getShortName().equals("Fork"))
+		if(processorsToGenerate.get(id).getClass().getSimpleName().equals("Fork"))
 			return true;
 		else
 			return false;
+		
+	}
+	
+	private void writingModules(int[][] connectionArray) throws IOException {
+		for(int i = 0; i < processorsToGenerate.size(); i++) {
+			String processorShortName = processorsToGenerate.get(i).getClass().getSimpleName();
+			
+			switch(processorShortName) {
+			case "QueueSource":
+				QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
+				queueSource.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				break;
+				
+			case "Doubler":
+				Doubler doubler = (Doubler)processorsToGenerate.get(i);
+				doubler.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				break;
+				
+			case "CountDecimate":
+				 CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
+				countDecimate.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				break;
+				
+			case "Adder":
+				Adder add = (Adder)processorsToGenerate.get(i);
+				add.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity);
+				break;
+				
+			case "Fork":
+				Fork fork = (Fork)processorsToGenerate.get(i);
+				fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+				break;
+				
+			case "ApplyFunction":
+				String functionName = processorsToGenerate.get(i).toString();
+				switch(functionName) {
+				case "Not" :
+					ApplyFunction function = new ApplyFunction(Booleans.not);
+					function.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0);
+					break;
+			}
+				break;
+			default:
+				System.out.println(processorsToGenerate.get(i).getClass().getSimpleName()+": This module is not supported at the moment");
+				break;
+			}
+		}
 		
 	}
 

@@ -232,6 +232,10 @@ public class ApplyFunction extends UniformProcessor implements SMVInterface
 @Override
 public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException {
 	String s = m_function.toString();
+	if(m_function instanceof SMVInterface) {
+		((SMVInterface) m_function).writingSMV(printStream, Id, list, array, arrayWidth, maxInputArity, pipeType);
+	}
+	
 	switch(s) {
 	case "¬" :
 		printStream.printf("MODULE Not(inc_1, inb_1,ouc_1, oub_1) \n");

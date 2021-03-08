@@ -57,7 +57,7 @@ public class Booleans
    * @since 0.7
    * @author Sylvain Hallé
    */
-  public static class And extends BinaryFunction<Boolean, Boolean, Boolean>
+  public static class And extends BinaryFunction<Boolean, Boolean, Boolean> implements SMVInterface
   {
     public static final transient And instance = new And();
 
@@ -116,6 +116,13 @@ public class Booleans
     {
       return "∧";
     }
+
+	@Override
+	public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity,
+			String pipeType) throws IOException {
+		System.out.println("hi");
+		
+	}
   }
 
   /**

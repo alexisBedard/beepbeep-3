@@ -12,6 +12,7 @@ import java.util.Iterator;
 import ca.uqac.lif.cep.PipeConnection.Tuples;
 import ca.uqac.lif.cep.functions.ApplyFunction;
 import ca.uqac.lif.cep.tmf.CountDecimate;
+import ca.uqac.lif.cep.tmf.Filter;
 import ca.uqac.lif.cep.tmf.Fork;
 import ca.uqac.lif.cep.tmf.QueueSource;
 import ca.uqac.lif.cep.util.Booleans;
@@ -144,6 +145,8 @@ public class SmvFileGeneration {
 		m_Modules.add("CountDecimate");
 		m_Modules.add("Adder");
 		m_Modules.add("Fork");
+		m_Modules.add("Filter");
+		//ApplyFunctions
 	}
 	
 	private boolean checkDuplication(String processorShortName) {
@@ -459,6 +462,48 @@ public class SmvFileGeneration {
 				m_Functions.add(string);
 			}
 			break;
+			
+		case "Filter":
+			printStream.printf("		--Filter \n");
+			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+			prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+			//new Minimum value
+			connectionArray[ProcId][0] = (connectionArray[prec1][0]);
+			//new Maximum value
+			connectionArray[ProcId][1] = (connectionArray[prec1][1]);
+			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+			
+			if(isMultipleOutput(prec1)) {
+				int outputPosition = 0;
+				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+						outputPosition = m_ProcessorChain.get(i).m_arityIn;
+						string += "filter"+ProcId+" : Filter"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+						break;
+					}
+				}
+			}
+			else {
+				string += "filter"+ProcId+" : Filter"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+			}
+			if(isMultipleOutput(prec2)) {
+				int outputPosition = 0;
+				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+						outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+						string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+						break;
+					}
+				}
+			}
+			else {
+				string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+			}
+			string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+			m_Functions.add(string);
+			break;
+			
 		case "ApplyFunction":
 			String functionName = processorsToGenerate.get(ProcId).toString();
 			switch(functionName) {
@@ -544,6 +589,11 @@ public class SmvFileGeneration {
 			case "Fork":
 				Fork fork = (Fork)processorsToGenerate.get(i);
 				fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, fork.getPipeType());
+				break;
+				
+			case "Filter":
+				Filter filter = (Filter)processorsToGenerate.get(i);
+				filter.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity, pipeType);
 				break;
 				
 			case "ApplyFunction":

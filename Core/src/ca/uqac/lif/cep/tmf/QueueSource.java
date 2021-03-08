@@ -336,7 +336,6 @@ public class QueueSource extends Source implements SMVInterface
 	  return m_maxValue;
   }
   
-  //Get a specific value INTEGER ONLY
   public int getIntValue(int index) {
 	  return (Integer)m_events.get(index);
   }
@@ -345,7 +344,7 @@ public class QueueSource extends Source implements SMVInterface
   public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException{
 	  printStream.printf("MODULE QueueSource"+Id+"(ouc_1, oub_1) \n");
 	  printStream.printf("	VAR \n");
-	  printStream.printf("		cnt : 0.."+(this.getSize() - 1) +"; \n");
+	  printStream.printf("		cnt : 0.."+(m_events.size() - 1) +"; \n");
 	  if(this.getVariableType().equals("Integer")) {
 		  printStream.printf("		value : ");
 		  printStream.printf(Integer.toString(this.getMinValue()) + ".." + Integer.toString(this.getMaxValue())+ "; \n");
@@ -354,13 +353,9 @@ public class QueueSource extends Source implements SMVInterface
 		  printStream.printf("		init(value) := " + m_events.get(0)+"; \n");
 		  printStream.printf("		next(value) := case \n");
 			  
-		  for(int j = 0; j < this.getSize(); j++ ) {
-			  if(j != this.getSize() -1) {
-				 printStream.printf("			cnt = "+j+" : " + m_events.get(j+1) + "; \n");
-			  }
+		  for(int j = 0; j < m_events.size(); j++ ) {
+				 printStream.printf("			next(cnt) = "+j+" : " + m_events.get(j) + "; \n");
 		  }
-			  
-		  printStream.printf("			value = " + m_events.get(this.getSize() - 1)+" : " + m_events.get(0) + "; \n");
 	  }
 	  
 	  if(this.getVariableType().equals("Boolean")) {
@@ -370,15 +365,14 @@ public class QueueSource extends Source implements SMVInterface
 		  printStream.printf("		init(value) := " + toUpperCase(m_events.get(0))+"; \n");
 		  printStream.printf("		next(value) := case \n");
 		  
-		  for(int j = 0; j < this.getSize(); j++ ) {
+		  for(int j = 0; j < m_events.size(); j++ ) {
 				 printStream.printf("			next(cnt) = "+ j+" : " + toUpperCase(m_events.get(j)) + "; \n");
 		  }
-		  printStream.printf("			TRUE : value; \n");
-		  printStream.printf("		esac; \n");
-		  
-		  printStream.printf("		init(cnt) := 0; \n");
-		  printStream.printf("		next(cnt) := (cnt + 1) mod "+this.getSize()+ ";\n");
 	  }
+	  printStream.printf("			TRUE : value; \n");
+	  printStream.printf("		esac; \n");
+	  printStream.printf("		init(cnt) := 0; \n");
+	  printStream.printf("		next(cnt) := (cnt + 1) mod "+m_events.size()+ ";\n");
 	  printStream.printf("		init(ouc_1) := value; \n");
 	  printStream.printf("		init(oub_1) := TRUE; \n");
 	  printStream.printf("		next(ouc_1) := next(value); \n");

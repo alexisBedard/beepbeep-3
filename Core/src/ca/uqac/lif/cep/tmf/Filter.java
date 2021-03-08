@@ -392,4 +392,11 @@ public void writingSMV(PrintStream printStream, int Id, int list, int[][] array,
 	  printStream.printf("		esac; \n");
 	  printStream.printf("\n");
 	}
+
+@Override
+ public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
+	printStream.printf("		--Filter \n");
+	printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+	printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+ }
 }

@@ -239,8 +239,8 @@ public class SmvFileGeneration {
 						int cell = (arrayWidth - maxInputArrity) + m_ProcessorChain.get(id+output).m_arityOut;
 						if(connectionArray[m_ProcessorChain.get(id+output).m_POutput.getId()][cell] == -1) {
 							//Storing and writing the values of m_PInput
-							s = m_ProcessorChain.get(id+output).m_PInput.getClass().getSimpleName();
-							generateValues(connectionArray, s, id+output, m_ProcessorChain.get(id+output).m_PInput.getId());
+							//s = m_ProcessorChain.get(id+output).m_PInput.getClass().getSimpleName();
+							generateValues(connectionArray, m_ProcessorChain.get(id+output).m_PInput, id+output, m_ProcessorChain.get(id+output).m_PInput.getId());
 						}
 						
 						//m_PInput is one of possibly many m_POutput's input 
@@ -268,9 +268,9 @@ public class SmvFileGeneration {
 							
 							if(m_ProcessorChain.get(id).m_POutput.getPushableOutput(0) == null) {
 								//Storing and writing the values of m_POutput
-								s = m_ProcessorChain.get(id).m_POutput.getClass().getSimpleName();
+								//s = m_ProcessorChain.get(id).m_POutput.getClass().getSimpleName();
 								printStream.printf("		--OUTPUT \n");
-								generateValues(connectionArray, s, id, m_ProcessorChain.get(id).m_POutput.getId());
+								generateValues(connectionArray, m_ProcessorChain.get(id).m_POutput, id, m_ProcessorChain.get(id).m_POutput.getId());
 								//This is the last processor
 								canBeGenerated = false;
 							}
@@ -301,133 +301,127 @@ public class SmvFileGeneration {
 		printStream.printf("\n");
 	}
 
-	private void generateValues(int[][] connectionArray, String s, int id, int ProcId) throws IOException {
+	
+	private void generateValues(int[][] connectionArray, Processor p, int id, int ProcId) throws IOException {
 		int prec1;
 		int prec2;
 		String string = "";
-		switch(s) {
-		case "QueueSource" :
-			printStream.printf("		--QueueSource \n");
-			QueueSource q = (QueueSource)m_ProcessorChain.get(id).m_PInput;
-			pipeType = q.getVariableType();
-			if( q.getVariableType().equals("Integer")) {
-				printStream.printf("		pipe_"+ProcId+" : ");
-				connectionArray[ProcId][0] = q.getMinValue();
-				connectionArray[ProcId][1] = q.getMaxValue();
-				printStream.printf(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
-				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-				m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-			}
-			if( q.getVariableType().equals("Boolean")) {
-				connectionArray[ProcId][0] = 0;
-				connectionArray[ProcId][1] = 1;
-				printStream.printf("		pipe_"+ProcId+" : boolean; \n");
-				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-				m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-			}
-			break;
-		case "Doubler":
-			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-			printStream.printf("		--Doubler\n");
-			//new Minimum value
-			connectionArray[ProcId][0] = (connectionArray[prec1][0])*2;
-			//new Maximum value
-			connectionArray[ProcId][1] = (connectionArray[prec1][1])*2;
-			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-			if(isMultipleOutput(prec1)) {
-				int outputPosition = 0;
-				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
-					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
-						outputPosition = m_ProcessorChain.get(i).m_arityIn;
-						m_Functions.add("doubler"+ProcId+" : Doubler(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-						break;
-					}
+		if(p instanceof SMVInterface) {
+			if(p instanceof QueueSource) {
+				QueueSource q = (QueueSource)p;
+				pipeType = q.getVariableType();
+				if( q.getVariableType().equals("Integer")) {
+					connectionArray[ProcId][0] = q.getMinValue();
+					connectionArray[ProcId][1] = q.getMaxValue();
+					m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 				}
+				if( q.getVariableType().equals("Boolean")) {
+					connectionArray[ProcId][0] = 0;
+					connectionArray[ProcId][1] = 1;
+					m_Functions.add("queueSource"+ProcId+" : QueueSource"+ProcId+"(pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				}
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
+			}
 			
-			}
-			else {
-				m_Functions.add("doubler"+ProcId+" : Doubler(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-			}
-
-			break;
-		case "CountDecimate":
-			printStream.printf("		--CountDecimate \n");
-			//new Minimum value
-			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-			if(pipeType.equals("Integer")) {
-				connectionArray[ProcId][0] = (connectionArray[prec1][0]);
-				//new Maximum value
-				connectionArray[ProcId][1] = (connectionArray[prec1][1]);
-				printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-			}
-			if(pipeType.equals("Boolean")) {
+			if(p instanceof Doubler) {
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
 				//new Minimum value
-				connectionArray[ProcId][0] = 0;
+				connectionArray[ProcId][0] = (connectionArray[prec1][0])*2;
 				//new Maximum value
-				connectionArray[ProcId][1] = 1;
-				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
-				printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+				connectionArray[ProcId][1] = (connectionArray[prec1][1])*2;
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
+				if(isMultipleOutput(prec1)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i).m_arityIn;
+							m_Functions.add("doubler"+ProcId+" : Doubler(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+							break;
+						}
+					}
+				
+				}
+				else {
+					m_Functions.add("doubler"+ProcId+" : Doubler(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				}
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
 			}
 			
-			if(isMultipleOutput(prec1)) {
-				int outputPosition = 0;
-				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
-					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
-						outputPosition = m_ProcessorChain.get(i).m_arityIn;
-						m_Functions.add("decimate"+ProcId+" : CountDecimate"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-						break;
-					}
+			if(p instanceof CountDecimate) {
+				CountDecimate c = (CountDecimate)p;
+				c.setPipeType(pipeType);
+				//new Minimum value
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				if(/*pipeType*/c.getPipeType().equals("Integer")) {
+					connectionArray[ProcId][0] = (connectionArray[prec1][0]);
+					//new Maximum value
+					connectionArray[ProcId][1] = (connectionArray[prec1][1]);
 				}
+				if(/*pipeType*/c.getPipeType().equals("Boolean")) {
+					//new Minimum value
+					connectionArray[ProcId][0] = 0;
+					//new Maximum value
+					connectionArray[ProcId][1] = 1;
+				}
+				
+				if(isMultipleOutput(prec1)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i).m_arityIn;
+							m_Functions.add("decimate"+ProcId+" : CountDecimate"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+							break;
+						}
+					}
+				
+				}
+				else {
+					m_Functions.add("decimate"+ProcId+" : CountDecimate"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				}
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
+			}
 			
-			}
-			else {
-				m_Functions.add("decimate"+ProcId+" : CountDecimate"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-			}
-			break;
-		case "Adder":
-			printStream.printf("		--Adder \n");
-			//new Minimum value
-			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-			prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
-			connectionArray[ProcId][0] = (connectionArray[prec1][0] + connectionArray[prec2][0]);
-			//new Maximum value
-			connectionArray[ProcId][1] = (connectionArray[prec1][1] + connectionArray[prec2][1]);
-			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-			
-			if(isMultipleOutput(prec1)) {
-				int outputPosition = 0;
-				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
-					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
-						outputPosition = m_ProcessorChain.get(i).m_arityIn;
-						string += "adder"+ProcId+" : Adder"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
-						break;
+			if(p instanceof Adder) {
+				//new Minimum value
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+				connectionArray[ProcId][0] = (connectionArray[prec1][0] + connectionArray[prec2][0]);
+				//new Maximum value
+				connectionArray[ProcId][1] = (connectionArray[prec1][1] + connectionArray[prec2][1]);
+				
+				if(isMultipleOutput(prec1)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i).m_arityIn;
+							string += "adder"+ProcId+" : Adder"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+							break;
+						}
 					}
 				}
-			}
-			else {
-				string += "adder"+ProcId+" : Adder"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
-			}
-			if(isMultipleOutput(prec2)) {
-				int outputPosition = 0;
-				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
-					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
-						outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
-						string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
-						break;
+				else {
+					string += "adder"+ProcId+" : Adder"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+				}
+				if(isMultipleOutput(prec2)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+							string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+							break;
+						}
 					}
 				}
+				else {
+					string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+				}
+				string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+				m_Functions.add(string);
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
 			}
-			else {
-				string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
-			}
-			string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
-			m_Functions.add(string);
-			break;
-		case "Fork":
-			Fork f = (Fork)m_ProcessorChain.get(id).m_PInput;
+		
+		if(p instanceof Fork) {
+			Fork f = (Fork)p;
 			f.setPipeType(pipeType);
 			//check if all output's input are generated
 			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
@@ -443,13 +437,6 @@ public class SmvFileGeneration {
 				}
 			}
 			if(completed) {
-				printStream.printf("		--Fork \n");
-				for(int i = 0; i < f.getOutputArity(); i++) {
-					printStream.printf("		pipe_"+ProcId+"_"+i+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-					printStream.printf("		b_pipe_"+ProcId+ "_"+i+" : boolean; \n");
-					
-					
-				}
 				 string = "fork"+ProcId+" : Fork"+ProcId+ "(pipe_"+prec1+", b_pipe_"+prec1+", ";
 				for(int i = 0; i < f.getOutputArity(); i++) {
 					if(i + 1 != f.getOutputArity()) {
@@ -460,95 +447,81 @@ public class SmvFileGeneration {
 					}
 				}
 				m_Functions.add(string);
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
 			}
-			break;
-			
-		case "Filter":
-			printStream.printf("		--Filter \n");
-			prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-			prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
-			//new Minimum value
-			connectionArray[ProcId][0] = (connectionArray[prec1][0]);
-			//new Maximum value
-			connectionArray[ProcId][1] = (connectionArray[prec1][1]);
-			printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
-			printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
-			
-			if(isMultipleOutput(prec1)) {
-				int outputPosition = 0;
-				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
-					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
-						outputPosition = m_ProcessorChain.get(i).m_arityIn;
-						string += "filter"+ProcId+" : Filter"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
-						break;
-					}
-				}
-			}
-			else {
-				string += "filter"+ProcId+" : Filter"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
-			}
-			if(isMultipleOutput(prec2)) {
-				int outputPosition = 0;
-				for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
-					if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
-						outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
-						string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
-						break;
-					}
-				}
-			}
-			else {
-				string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
-			}
-			string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
-			m_Functions.add(string);
-			break;
-			
-		case "ApplyFunction":
-			String functionName = processorsToGenerate.get(ProcId).toString();
-			switch(functionName) {
-			case "¬" :
-				printStream.printf("		--Not \n");
-				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
-				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
-				
-				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-				//new Minimum value
-				connectionArray[ProcId][0] = 0;
-				//new Maximum value
-				connectionArray[ProcId][1] = 1;
-				m_Functions.add("not"+ProcId+" : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-				break;
-			case "∨" : 
-				printStream.printf("		--Or \n");
-				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
-				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
-				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-				prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
-				//new Minimum value
-				connectionArray[ProcId][0] = 0;
-				//new Maximum value
-				connectionArray[ProcId][1] = 1;
-				m_Functions.add("or"+ProcId+" : Or(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-				break;
-			case "∧":
-				printStream.printf("		--And \n");
-				printStream.printf("		pipe_"+ProcId+" : boolean;\n");
-				printStream.printf("		b_pipe_"+ProcId+" : boolean; \n");
-				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
-				prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
-				//new Minimum value
-				connectionArray[ProcId][0] = 0;
-				//new Maximum value
-				connectionArray[ProcId][1] = 1;
-				m_Functions.add("and"+ProcId+" : And(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
-				break;
-			}
-			break;
-		default:
-			break;
 		}
-		
+			if(p instanceof Filter) {
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+				//new Minimum value
+				connectionArray[ProcId][0] = (connectionArray[prec1][0]);
+				//new Maximum value
+				connectionArray[ProcId][1] = (connectionArray[prec1][1]);
+				
+				if(isMultipleOutput(prec1)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i).m_arityIn;
+							string += "filter"+ProcId+" : Filter"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+							break;
+						}
+					}
+				}
+				else {
+					string += "filter"+ProcId+" : Filter"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+				}
+				if(isMultipleOutput(prec2)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+							string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+							break;
+						}
+					}
+				}
+				else {
+					string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+				}
+				string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+				m_Functions.add(string);
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
+			}
+			
+			if(p instanceof ApplyFunction) {
+				String functionName = p.toString();
+				switch(functionName) {
+				case "¬" :
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					//new Minimum value
+					connectionArray[ProcId][0] = 0;
+					//new Maximum value
+					connectionArray[ProcId][1] = 1;
+					m_Functions.add("not"+ProcId+" : Not(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+					break;
+				case "∨" : 
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+					//new Minimum value
+					connectionArray[ProcId][0] = 0;
+					//new Maximum value
+					connectionArray[ProcId][1] = 1;
+					m_Functions.add("or"+ProcId+" : Or(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+					break;
+				case "∧":
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+					//new Minimum value
+					connectionArray[ProcId][0] = 0;
+					//new Maximum value
+					connectionArray[ProcId][1] = 1;
+					m_Functions.add("and"+ProcId+" : And(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+					break;
+				}
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
+			}
+		}
 	}
 	
 	//This fonction cheks if a processor is preceded by a processor with multiple outputs.
@@ -563,64 +536,18 @@ public class SmvFileGeneration {
 	
 	private void writingModules(int[][] connectionArray) throws IOException {
 		for(int i = 0; i < processorsToGenerate.size(); i++) {
-			String processorShortName = processorsToGenerate.get(i).getClass().getSimpleName();
-			
-			switch(processorShortName) {
-			case "QueueSource":
-				QueueSource queueSource = (QueueSource)processorsToGenerate.get(i);
-				queueSource.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
-				break;
-				
-			case "Doubler":
-				Doubler doubler = (Doubler)processorsToGenerate.get(i);
-				doubler.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
-				break;
-				
-			case "CountDecimate":
-				 CountDecimate countDecimate = (CountDecimate)processorsToGenerate.get(i);
-				countDecimate.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
-				break;
-				
-			case "Adder":
-				Adder add = (Adder)processorsToGenerate.get(i);
-				add.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity, pipeType);
-				break;
-				
-			case "Fork":
-				Fork fork = (Fork)processorsToGenerate.get(i);
-				fork.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, fork.getPipeType());
-				break;
-				
-			case "Filter":
-				Filter filter = (Filter)processorsToGenerate.get(i);
-				filter.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity, pipeType);
-				break;
-				
-			case "ApplyFunction":
-				String functionName = processorsToGenerate.get(i).toString();
-				switch(functionName) {
-				case "¬" :
-					ApplyFunction not = new ApplyFunction(Booleans.not);
-					not.writingSMV(printStream, processorsToGenerate.get(i).getId(), 0, connectionArray, 0, 0, pipeType);
-					break;
-				case "∨"  :
-					ApplyFunction or = new ApplyFunction(Booleans.or);
-					or.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, 0, 0, pipeType);
-					break;
-				case "∧":
-					ApplyFunction and = new ApplyFunction(Booleans.and);
-					and.writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, 0, 0, pipeType);
-					break;
-				default:
-					System.out.println(processorsToGenerate.get(i).toString() + ": This function is not supported at the moment");
+			if(processorsToGenerate.get(i) instanceof SMVInterface) {
+				if(processorsToGenerate.get(i) instanceof Fork) {
+					Fork fork = (Fork)processorsToGenerate.get(i);
+					((SMVInterface) processorsToGenerate.get(i)).writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity, fork.getPipeType());
+				}
+				else {
+					((SMVInterface) processorsToGenerate.get(i)).writingSMV(printStream, processorsToGenerate.get(i).getId(), m_WaitingList, connectionArray, arrayWidth, maxInputArrity, pipeType);
+				}
 			}
-				break;
-			default:
-				System.out.println(processorsToGenerate.get(i).getClass().getSimpleName()+": This module is not supported at the moment");
-				break;
+			else {
+				System.out.println("Processor not supported at the moment");
 			}
 		}
-		
 	}
-
 };

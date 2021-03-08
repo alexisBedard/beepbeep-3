@@ -41,6 +41,9 @@ import ca.uqac.lif.cep.SMVInterface;
 @SuppressWarnings("squid:S2160")
 public class CountDecimate extends Decimate implements SMVInterface
 {
+	
+	private String pipeType = "";
+	
   /**
    * The decimation interval
    */
@@ -149,6 +152,14 @@ public class CountDecimate extends Decimate implements SMVInterface
     return cd;
   }
   
+  public void setPipeType( String s) {
+		pipeType = s;
+	  }
+	  
+	  public String getPipeType() {
+		  return pipeType;
+	  }
+  
   @Override
   public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException{
 	  printStream.printf("MODULE CountDecimate"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
@@ -172,7 +183,7 @@ public class CountDecimate extends Decimate implements SMVInterface
 	  printStream.printf("		next(ouc_1) := case \n");
 	  printStream.printf("			next(inb_1) & cnt = 0 : next(inc_1); \n");
 	  if(pipeType.equals("Integer")) {
-		  printStream.printf("			TRUE : "+array[Id][1]+"; \n");
+		  printStream.printf("			TRUE : "+array[Id][0]+"; \n");
 	  }
 	  if(pipeType.equals("Boolean")) {
 		  printStream.printf("			TRUE : FALSE; \n");
@@ -186,4 +197,18 @@ public class CountDecimate extends Decimate implements SMVInterface
 	  printStream.printf("		esac; \n");
 	  printStream.printf("\n");
   }
+
+ @Override
+ public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
+	printStream.printf("		--CountDecimate \n");
+	
+	if(this.getPipeType().equals("Integer")) {
+		printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+		printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+	}
+	if(this.getPipeType().equals("Boolean")) {
+		printStream.printf("		pipe_"+ProcId+" : boolean;\n");
+		printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+	}
+ }
 }

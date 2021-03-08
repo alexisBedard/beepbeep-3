@@ -148,4 +148,21 @@ public class Fork extends UniformProcessor implements SMVInterface
 	  }
 	  printStream.printf(" \n");
 	}
+
+@Override
+public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
+	printStream.printf("		--Fork \n");
+	
+	for(int i = 0; i < this.getOutputArity(); i++) {
+		if(this.getPipeType().equals("Integer")) {
+			printStream.printf("		pipe_"+ProcId+"_"+i+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+			printStream.printf("		b_pipe_"+ProcId+ "_"+i+" : boolean; \n");
+		}
+		if(this.getPipeType().equals("Boolean")) {
+			printStream.printf("		pipe_"+ProcId+"_"+i+" : boolean;\n");
+			printStream.printf("		b_pipe_"+ProcId+ "_"+i+" : boolean; \n");
+		}
+	}
+	
+}
 }

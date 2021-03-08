@@ -19,6 +19,7 @@ package ca.uqac.lif.cep.tmf;
 
 import ca.uqac.lif.cep.SMVInterface;
 import ca.uqac.lif.cep.Connector.Variant;
+import ca.uqac.lif.cep.Processor;
 import ca.uqac.lif.petitpoucet.DirectValue;
 import ca.uqac.lif.petitpoucet.NodeFunction;
 
@@ -384,4 +385,19 @@ public class QueueSource extends Source implements SMVInterface
 	String s = object.toString();
 	return s.toUpperCase();
   }
+
+@Override
+ public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
+	printStream.printf("		--QueueSource \n");
+	if( this.getVariableType().equals("Integer")) {
+		printStream.printf("		pipe_"+ProcId+" : ");
+		printStream.printf(Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ "; \n");
+		printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+	}
+	if( this.getVariableType().equals("Boolean")) {
+		printStream.printf("		pipe_"+ProcId+" : boolean; \n");
+		printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+	}
+	
+ }
 }

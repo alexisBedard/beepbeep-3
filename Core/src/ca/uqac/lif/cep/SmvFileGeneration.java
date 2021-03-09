@@ -518,6 +518,157 @@ public class SmvFileGeneration {
 					connectionArray[ProcId][1] = 1;
 					m_Functions.add("and"+ProcId+" : And(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+prec2+", b_pipe_"+prec2+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
 					break;
+				case "+":
+					//new Minimum value
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+					connectionArray[ProcId][0] = (connectionArray[prec1][0] + connectionArray[prec2][0]);
+					//new Maximum value
+					connectionArray[ProcId][1] = (connectionArray[prec1][1] + connectionArray[prec2][1]);
+					
+					if(isMultipleOutput(prec1)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i).m_arityIn;
+								string += "addition"+ProcId+" : Addition"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "addition"+ProcId+" : Addition"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+					}
+					if(isMultipleOutput(prec2)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+								string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+					}
+					string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+					m_Functions.add(string);
+					break;
+				
+				case "-":
+					//new Minimum value
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+					connectionArray[ProcId][0] = (connectionArray[prec1][0] - connectionArray[prec2][1]);
+					//new Maximum value
+					connectionArray[ProcId][1] = (connectionArray[prec1][1] - connectionArray[prec2][0]);
+					
+					if(isMultipleOutput(prec1)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i).m_arityIn;
+								string += "substraction"+ProcId+" : Substraction"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "substraction"+ProcId+" : Substraction"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+					}
+					if(isMultipleOutput(prec2)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+								string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+					}
+					string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+					m_Functions.add(string);
+					break;
+				
+				case "÷":
+					//new Minimum value
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+					connectionArray[ProcId][0] = (connectionArray[prec1][0] / connectionArray[prec2][1]);
+					//new Maximum value
+					connectionArray[ProcId][1] = (connectionArray[prec1][1] / connectionArray[prec2][0]);
+					
+					if(isMultipleOutput(prec1)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i).m_arityIn;
+								string += "division"+ProcId+" : Division"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "division"+ProcId+" : Division"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+					}
+					if(isMultipleOutput(prec2)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+								string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+					}
+					string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+					m_Functions.add(string);
+					break;
+					
+				case "×":
+					//new Minimum value
+					prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+					prec2 = connectionArray[ProcId][arrayWidth - maxInputArrity + 1];
+					connectionArray[ProcId][0] = (connectionArray[prec1][0] / connectionArray[prec2][0]);
+					//new Maximum value
+					connectionArray[ProcId][1] = (connectionArray[prec1][1] / connectionArray[prec2][1]);
+					
+					if(isMultipleOutput(prec1)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i).m_arityIn;
+								string += "multiplication"+ProcId+" : Multiplication"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "multiplication"+ProcId+" : Multiplication"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", ";
+					}
+					if(isMultipleOutput(prec2)) {
+						int outputPosition = 0;
+						for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+							if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+								outputPosition = m_ProcessorChain.get(i+1).m_arityIn;
+								string += "pipe_"+prec2+"_"+outputPosition+", b_pipe_"+prec2+"_"+outputPosition+", ";
+								break;
+							}
+						}
+					}
+					else {
+						string += "pipe_"+prec2+", b_pipe_"+prec2+", ";
+					}
+					string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
+					m_Functions.add(string);
+					break;
 				}
 				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
 			}

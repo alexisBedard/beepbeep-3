@@ -229,17 +229,17 @@ public class ApplyFunction extends UniformProcessor implements SMVInterface
     }
   }
 
-@Override
-public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException {
+ @Override
+ public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity, String pipeType) throws IOException {
 	if(m_function instanceof SMVInterface) {
 		((SMVInterface) m_function).writingSMV(printStream, Id, list, array, arrayWidth, maxInputArity, pipeType);
 	}
 	
-	}
+ }
 
-@Override
-public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
+ @Override
+ public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
 	((SMVInterface) m_function).writePipes(printStream,ProcId, connectionArray);
 	
-}
+ }
 }

@@ -15,6 +15,7 @@ import ca.uqac.lif.cep.tmf.CountDecimate;
 import ca.uqac.lif.cep.tmf.Filter;
 import ca.uqac.lif.cep.tmf.Fork;
 import ca.uqac.lif.cep.tmf.QueueSource;
+import ca.uqac.lif.cep.tmf.Trim;
 import ca.uqac.lif.cep.util.Booleans;
 import ca.uqac.lif.cep.util.Booleans.Not;
 
@@ -146,6 +147,7 @@ public class SmvFileGeneration {
 		m_Modules.add("Adder");
 		m_Modules.add("Fork");
 		m_Modules.add("Filter");
+		m_Modules.add("Trim");
 		//ApplyFunctions
 	}
 	
@@ -486,6 +488,29 @@ public class SmvFileGeneration {
 				}
 				string += "pipe_"+ProcId+", b_pipe_"+ProcId+"); \n";
 				m_Functions.add(string);
+				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
+			}
+			
+			if(p instanceof Trim) {
+				prec1 = connectionArray[ProcId][arrayWidth - maxInputArrity];
+				//new Minimum value
+				connectionArray[ProcId][0] = (connectionArray[prec1][0]);
+				//new Maximum value
+				connectionArray[ProcId][1] = (connectionArray[prec1][1]);
+				if(isMultipleOutput(prec1)) {
+					int outputPosition = 0;
+					for(int i = 0 ; i < m_ProcessorChain.size(); i++) {
+						if(m_ProcessorChain.get(i).m_POutput.getId() == ProcId) {
+							outputPosition = m_ProcessorChain.get(i).m_arityIn;
+							m_Functions.add("trim"+ProcId+" : Trim"+ProcId+"(pipe_"+prec1+"_"+outputPosition+", b_pipe_"+prec1+"_"+outputPosition+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+							break;
+						}
+					}
+				
+				}
+				else {
+					m_Functions.add("trim"+ProcId+" : Trim"+ProcId+"(pipe_"+prec1+", b_pipe_"+prec1+", pipe_"+ProcId+", b_pipe_"+ProcId+"); \n");
+				}
 				((SMVInterface) p).writePipes(printStream,ProcId, connectionArray);
 			}
 			

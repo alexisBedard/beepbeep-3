@@ -17,7 +17,11 @@
  */
 package ca.uqac.lif.cep.tmf;
 
+import ca.uqac.lif.cep.SMVInterface;
 import ca.uqac.lif.cep.SynchronousProcessor;
+
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Queue;
 
 /**
@@ -27,7 +31,7 @@ import java.util.Queue;
  * @since 0.2.1
  */
 @SuppressWarnings("squid:S2160")
-public class Trim extends SynchronousProcessor
+public class Trim extends SynchronousProcessor implements SMVInterface
 {
   /**
    * How many events to ignore at the beginning of the trace
@@ -113,4 +117,46 @@ public class Trim extends SynchronousProcessor
     int delay = ((Number) o).intValue();
     return new Trim(delay);
   }
+
+@Override
+public void writingSMV(PrintStream printStream, int Id, int list, int[][] array, int arrayWidth, int maxInputArity,
+		String pipeType) throws IOException {
+	printStream.printf("MODULE Trim"+Id+"(inc_1, inb_1, ouc_1, oub_1) \n");
+	printStream.printf("	VAR \n");
+	printStream.printf("		cnt : 0.."+(m_delay - 1)+"; \n");
+	printStream.printf("		done : boolean; \n");
+	printStream.printf("\n");
+	printStream.printf("	ASSIGN \n");
+	printStream.printf("		init(cnt) := 0; \n");
+	printStream.printf("		init(done) := FALSE; \n");
+	printStream.printf("		init(ouc_1) := "+array[Id][0]+"; \n");
+	printStream.printf("		init(oub_1) := FALSE;\n");
+	printStream.printf("\n");
+	printStream.printf("		next(cnt) := (cnt + 1) mod "+(m_delay - 1)+"; \n");
+	printStream.printf("		next(done) := case \n");
+	printStream.printf("			next(cnt) = 0 : TRUE;\n");
+	printStream.printf("			done & next(inb_1) : TRUE; \n");
+	printStream.printf("			TRUE : FALSE; \n");
+	printStream.printf("		esac; \n");
+	printStream.printf("\n");
+	printStream.printf("		next(ouc_1) := case \n");
+	printStream.printf("			done & next(inb_1) : next(inc_1); \n");
+	printStream.printf("		TRUE : "+array[Id][0]+"; \n");
+	printStream.printf("		esac; \n");
+	printStream.printf("\n");
+	printStream.printf("		next(oub_1) := case \n");
+	printStream.printf("			done & next(inb_1) : next(inb_1); \n");
+	printStream.printf("		TRUE : FALSE; \n");
+	printStream.printf("		esac; \n");
+	printStream.printf("\n");
+	
+}
+
+@Override
+public void writePipes(PrintStream printStream, int ProcId, int[][] connectionArray) throws IOException {
+	printStream.printf("		--Trim \n");
+	printStream.printf("		pipe_"+ProcId+" : "+ Integer.toString(connectionArray[ProcId][0]) + ".." + Integer.toString(connectionArray[ProcId][1])+ ";\n");
+	printStream.printf("		b_pipe_"+ProcId+ " : boolean; \n");
+	
+}
 }
